@@ -1,0 +1,4 @@
+%{"asn1ex": {:git, "https://github.com/cancoin/asn1ex.git", "3a5e5e9d158d876cbbd727e105875fefd7dbd71f", [branch: "wrap_source"]},
+  "cure": {:hex, :cure, "0.4.0"},
+  "excheck": {:hex, :excheck, "0.2.3"},
+  "triq": {:git, "https://github.com/krestenkrab/triq.git", "2fe1529bc1460e0a8cd356ef7a8fda9e43120445", []}}
