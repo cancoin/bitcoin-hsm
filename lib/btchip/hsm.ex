@@ -41,7 +41,7 @@ defmodule BTChip.HSM do
 
   @spec get_public_key(epk) :: {:ok, extended_public_key} | {:error, dongle_error}
   def get_public_key(parent_key) do
-    pick_hsm |> send_command({:public_key, parent_key})
+    pick_hsm |> send_command({:pubkey, parent_key})
   end
 
   @spec sign_immediate(epk, binary) :: {:ok, binary} | {:error, dongle_error}
