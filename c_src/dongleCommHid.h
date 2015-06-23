@@ -34,7 +34,6 @@
 int initHid(void);
 int exitHid(void);
 int sendApduHid(libusb_device_handle *handle, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw);
-libusb_device_handle* getFirstDongleHid();
 libusb_device_handle* getDongleHid(libusb_context *ctx, int port, int bus);
 void closeDongleHid(libusb_device_handle *handle);
 

@@ -53,20 +53,6 @@ int sendApduDongle(dongleHandle handle, const unsigned char *apdu, size_t apduLe
 	return result;
 }
 
-dongleHandle getFirstDongle() {
-	dongleHandle result = (dongleHandle)malloc(sizeof(dongleHandleInternal));
-	if (result == NULL) {
-		return result;
-	}
-	result->transport = TRANSPORT_HID;
-	result->handle = getFirstDongleHid();
-	if (result->handle != NULL) {
-		return result;
-	}
-	free(result);
-	return NULL;
-}
-
 dongleHandle getDongle(libusb_context *ctx, int port, int bus) {
 	dongleHandle result = (dongleHandle)malloc(sizeof(dongleHandleInternal));
 	if (result == NULL) {

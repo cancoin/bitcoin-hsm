@@ -54,20 +54,20 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char *apdu, size_t 
 		result = libusb_interrupt_transfer(handle, 0x02, paddingBuffer, blockSize, &length, TIMEOUT);
 		if (result < 0) {
 			return result;
-		}		
+		}
 		offset += blockSize;
 		remaining -= blockSize;
 	}
 	result = libusb_interrupt_transfer(handle, 0x82, buffer, MAX_BLOCK, &length, TIMEOUT);
 	if (result < 0) {
 		return result;
-	}	
+	}
 	offset = MAX_BLOCK;
-	if (buffer[0] == SW1_DATA) {		
+	if (buffer[0] == SW1_DATA) {
 		int dummy;
 		length = buffer[1];
 		length += 2;
-		if (length > (MAX_BLOCK - 2)) {			
+		if (length > (MAX_BLOCK - 2)) {
 			remaining = length - (MAX_BLOCK - 2);
 			while (remaining != 0) {
 				int blockSize;
@@ -99,19 +99,6 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char *apdu, size_t 
 	return length;
 }
 
-libusb_device_handle* getFirstDongleHid() {
-	libusb_device_handle *result = libusb_open_device_with_vid_pid(NULL, BTCHIP_VID, BTCHIP_HID_PID);
-	if (result == NULL) {
-		result = libusb_open_device_with_vid_pid(NULL, BTCHIP_VID, BTCHIP_HID_BOOTLOADER_PID);
-		if (result == NULL) {		
-			return NULL;
-		}
-	}
-	libusb_detach_kernel_driver(result, 0);
-	libusb_claim_interface(result, 0);
-	return result;
-}
-
 libusb_device_handle* getDongleHid(libusb_context *ctx, int port, int bus) {
 	struct libusb_device **devs;
 	struct libusb_device *found = NULL;
@@ -119,12 +106,12 @@ libusb_device_handle* getDongleHid(libusb_context *ctx, int port, int bus) {
 	struct libusb_device_handle *handle = NULL;
 	size_t i = 0;
 	int r;
-  int s;
-  int devices = 0;
-  int usb_port;
-  int usb_bus;
+	int s;
+	int devices = 0;
+	int usb_port;
+	int usb_bus;
 
-  if (libusb_get_device_list(ctx, &devs) < 0)
+	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {
@@ -132,16 +119,16 @@ libusb_device_handle* getDongleHid(libusb_context *ctx, int port, int bus) {
 		r = libusb_get_device_descriptor(dev, &desc);
 		if (r < 0) {
 			goto out;
-    }
+		}
 
-    if (desc.idVendor == BTCHIP_VID && desc.idProduct == BTCHIP_HID_PID) {
-      devices++;
-      usb_port = libusb_get_port_number(dev);
-      usb_bus = libusb_get_bus_number(dev);
-      if(port == usb_port && bus == usb_bus) {
-        found = dev;
-        break;
-      }
+		if (desc.idVendor == BTCHIP_VID && desc.idProduct == BTCHIP_HID_PID) {
+			devices++;
+			usb_port = libusb_get_port_number(dev);
+			usb_bus = libusb_get_bus_number(dev);
+			if(port == usb_port && bus == usb_bus) {
+				found = dev;
+				break;
+			}
 		}
 	}
 
@@ -149,14 +136,14 @@ libusb_device_handle* getDongleHid(libusb_context *ctx, int port, int bus) {
 		s = libusb_open(found, &handle);
 		if (s < 0) {
 			handle = NULL;
-      goto out;
-    }
-    if (handle) {
-      libusb_detach_kernel_driver(handle, 0);
-      libusb_claim_interface(handle, 0);
-      libusb_free_device_list(devs, 1);
-      return handle;
-    }
+			goto out;
+		}
+		if (handle) {
+			libusb_detach_kernel_driver(handle, 0);
+			libusb_claim_interface(handle, 0);
+			libusb_free_device_list(devs, 1);
+			return handle;
+		}
 	}
 
 out:
@@ -164,7 +151,7 @@ out:
 	return handle;
 }
 
-void closeDongleHid(libusb_device_handle *handle) {	
+void closeDongleHid(libusb_device_handle *handle) {
 	libusb_release_interface(handle, 0);
 	libusb_attach_kernel_driver(handle, 0);
 	libusb_close(handle);
