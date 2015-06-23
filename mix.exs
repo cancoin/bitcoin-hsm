@@ -24,7 +24,9 @@ defmodule BtchipHsm.Mixfile do
       {:cure, "~> 0.4.0"},
       {:excheck, "~> 0.2.3"},
       {:triq, git: "https://github.com/krestenkrab/triq.git"},
-      {:asn1ex, git: "https://github.com/cancoin/asn1ex.git", branch: "wrap_source"}
+      {:asn1ex, git: "https://github.com/cancoin/asn1ex.git", branch: "wrap_source"},
+      {:earmark, "~> 0.1", only: :dev},
+      {:ex_doc, "~> 0.7", only: :dev}
     ]
   end
 
