@@ -24,24 +24,24 @@ defmodule BTChip.HSM.Node do
     {:ok, %State{location: location, port: port}}
   end
 
-  def handle_call({:import, _seed} = command, _from, state) do
-    reply = call_command(command, state)
+  def handle_call({:import, _seed} = command, _from, %State{port: port} = state) do
+    reply = call_command(command, port)
     {:reply, reply, state}
   end
-  def handle_call({:derive, _parent_key, _index} = command, _from, state) do
-    reply = call_command(command, state)
+  def handle_call({:derive, _parent_key, _index} = command, _from, %State{port: port} = state) do
+    reply = call_command(command, port)
     {:reply, reply, state}
   end
-  def handle_call({:pubkey, _parent_key} = command, _from, state) do
-    reply = call_command(command, state)
+  def handle_call({:pubkey, _parent_key} = command, _from, %State{port: port} = state) do
+    reply = call_command(command, port)
     {:reply, reply, state}
   end
-  def handle_call({:sign, _private_key, _sighash} = command, _from, state) do
-    reply = call_command(command, state)
+  def handle_call({:sign, _private_key, _sighash} = command, _from, %State{port: port} = state) do
+    reply = call_command(command, port)
     {:reply, reply, state}
   end
-  def handle_call({:random, _count} = command, _from, state) do
-    reply = call_command(command, state)
+  def handle_call({:random, _count} = command, _from, %State{port: port} = state) do
+    reply = call_command(command, port)
     {:reply, reply, state}
   end
 
@@ -66,23 +66,22 @@ defmodule BTChip.HSM.Node do
     (:code.priv_dir(:btchip_hsm) ++ '/hsmport')
   end
 
-  defp call_command(command, %State{port: port} = state) do
+  defp call_command(command, port) do
     command = :erlang.term_to_binary(command)
     true = :erlang.port_command(port, command)
-    wait_response(state)
+    wait_response(port)
   end
 
-  defp wait_response(%State{port: port} = state) do
+  defp wait_response(port) do
     receive do
       {^port, {:data, :undef}} ->
-        {:error, :undefined_function, state}
+        {:error, :undefined_function}
       {^port, {:data, response}} ->
         data = :erlang.binary_to_term(response)
-        IO.inspect {:PORTDATA, data}
-        {:ok, data, state}
+        {:ok, data}
     after
       @timeout ->
-        {:error, :timeout, state}
+        {:error, :timeout}
     end
   end
 
