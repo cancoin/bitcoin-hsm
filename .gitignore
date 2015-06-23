@@ -5,3 +5,4 @@ erl_crash.dump
 /c_src/*.o
 /priv/*
 /doc
+/src/BTChip-HSM-ECDSA.asn1db
