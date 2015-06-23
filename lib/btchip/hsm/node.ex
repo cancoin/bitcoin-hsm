@@ -24,7 +24,23 @@ defmodule BTChip.HSM.Node do
     {:ok, %State{location: location, port: port}}
   end
 
-  def handle_call({:derive, parent_key, index} = command, _from, state) do
+  def handle_call({:import, _seed} = command, _from, state) do
+    reply = call_command(command, state)
+    {:reply, reply, state}
+  end
+  def handle_call({:derive, _parent_key, _index} = command, _from, state) do
+    reply = call_command(command, state)
+    {:reply, reply, state}
+  end
+  def handle_call({:pubkey, _parent_key} = command, _from, state) do
+    reply = call_command(command, state)
+    {:reply, reply, state}
+  end
+  def handle_call({:sign, _private_key, _sighash} = command, _from, state) do
+    reply = call_command(command, state)
+    {:reply, reply, state}
+  end
+  def handle_call({:random, _count} = command, _from, state) do
     reply = call_command(command, state)
     {:reply, reply, state}
   end
