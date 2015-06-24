@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 
 	erl_init(NULL, 0);
 
-	struct libusb_context *ctx;
+	struct libusb_context *ctx = NULL;
 	libusb_init(&ctx);
 
 	dongle = getDongle(ctx, port, bus);
