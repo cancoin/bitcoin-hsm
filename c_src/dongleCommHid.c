@@ -17,6 +17,7 @@
 ********************************************************************************/
 
 #include "dongleCommHid.h"
+#include "ledgerLayer.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -39,7 +40,7 @@ int exitHid() {
 }
 
 int sendApduHid(libusb_device_handle *handle, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw) {
-	unsigned char buffer[260];
+	unsigned char buffer[400];
 	unsigned char paddingBuffer[MAX_BLOCK];
 	int result;
 	int length;
@@ -47,10 +48,16 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char *apdu, size_t 
 	int remaining = apduLength;
 	int offset = 0;
 
+	result = wrapCommandAPDU(DEFAULT_LEDGER_CHANNEL, apdu, apduLength, LEDGER_HID_PACKET_SIZE, buffer, sizeof(buffer));
+	if (result < 0) {
+		return result;
+	}
+	remaining = result;
+
 	while (remaining > 0) {
 		int blockSize = (remaining > MAX_BLOCK ? MAX_BLOCK : remaining);
 		memset(paddingBuffer, 0, MAX_BLOCK);
-		memcpy(paddingBuffer, apdu + offset, blockSize);
+		memcpy(paddingBuffer, buffer + offset, blockSize);
 		result = libusb_interrupt_transfer(handle, 0x02, paddingBuffer, blockSize, &length, TIMEOUT);
 		if (result < 0) {
 			return result;
@@ -63,38 +70,26 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char *apdu, size_t 
 		return result;
 	}
 	offset = MAX_BLOCK;
-	if (buffer[0] == SW1_DATA) {
+
+	for (;;) {
 		int dummy;
-		length = buffer[1];
-		length += 2;
-		if (length > (MAX_BLOCK - 2)) {
-			remaining = length - (MAX_BLOCK - 2);
-			while (remaining != 0) {
-				int blockSize;
-				if (remaining > MAX_BLOCK) {
-					blockSize = MAX_BLOCK;
-				}
-				else {
-					blockSize = remaining;
-				}
-				result = libusb_interrupt_transfer(handle, 0x82, buffer + offset, MAX_BLOCK, &dummy, TIMEOUT);
-				if (result < 0) {
-					return result;
-				}
-				offset += blockSize;
-				remaining -= blockSize;
-			}
+		result = unwrapReponseAPDU(DEFAULT_LEDGER_CHANNEL, buffer, offset, LEDGER_HID_PACKET_SIZE, out, outLength);			
+		if (result < 0) {
+			return result;
 		}
-		length -= 2;
-		memcpy(out, buffer + 2, length);
-		swOffset = 2 + length;
-	}
-	else {
-		length = 0;
-		swOffset = 0;
+		if (result != 0) {
+			length = result - 2;
+			swOffset = result - 2;
+			break;
+		}
+		result = libusb_interrupt_transfer(handle, 0x82, buffer + offset, MAX_BLOCK, &dummy, TIMEOUT);
+		if (result < 0) {
+			return result;
+		}
+		offset += MAX_BLOCK;
 	}
 	if (sw != NULL) {
-		*sw = (buffer[swOffset] << 8) | buffer[swOffset + 1];
+		*sw = (out[swOffset] << 8) | out[swOffset + 1];
 	}
 	return length;
 }
@@ -121,7 +116,11 @@ libusb_device_handle* getDongleHid(libusb_context *ctx, int port, int bus) {
 			goto out;
 		}
 
-		if (desc.idVendor == BTCHIP_VID && desc.idProduct == BTCHIP_HID_PID) {
+		if (desc.idVendor == BTCHIP_VID &&
+			(desc.idProduct == BTCHIP_HID_PID_LEDGER  ||
+			 desc.idProduct == BTCHIP_HID_PID_LEDGER_PROTON ||
+			 desc.idProduct == BTCHIP_HID_BOOTLOADER_PID)) {
+
 			devices++;
 			usb_port = libusb_get_port_number(dev);
 			usb_bus = libusb_get_bus_number(dev);

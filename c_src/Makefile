@@ -11,7 +11,7 @@ WARN ?= -Wall -Werror
 CFLAGS = $(WARN) -Os -DHAVE_LIBUSB $(DEBUG) -I$(LIBUSB) -I$(EI)/include
 LIBS = -L$(EI)/lib -L/usr/local/lib
 COMMANDS = commands/import.o commands/derive.o commands/pubkey.o commands/pin.o commands/random.o commands/sign.o commands/verify.o
-OBJS   = hexUtils.o btchipUtils.o $(COMMANDS)
+OBJS   = hexUtils.o btchipUtils.o ledgerLayer.o $(COMMANDS)
 OBJS_COMM = $(OBJS) dongleCommHid.o dongleComm.o erl_comm.o
 
 all: hsmport hsmlist

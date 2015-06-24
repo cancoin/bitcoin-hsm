@@ -48,7 +48,11 @@ int main(int argc, char **argv) {
 		};
 		port_number = libusb_get_port_number(usb_list[i]);
 		bus = libusb_get_bus_number(usb_list[i]);
-		if (desc.idVendor == BTCHIP_VID && desc.idProduct == BTCHIP_HID_PID) {
+		if (desc.idVendor == BTCHIP_VID &&
+			(desc.idProduct == BTCHIP_HID_PID_LEDGER  ||
+			 desc.idProduct == BTCHIP_HID_PID_LEDGER_PROTON ||
+			 desc.idProduct == BTCHIP_HID_BOOTLOADER_PID)) {
+
 			devices++;
 			location = erl_format("[{port, ~i}, {bus, ~i}]", port_number, bus);
 			locations = erl_cons(location, locations);
