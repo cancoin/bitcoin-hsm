@@ -44,6 +44,13 @@ defmodule BTChip.HSM.Node.Manager do
   end
 
   def list_nodes do
+    case :file.consult(list_nodes_file) do
+      {:ok, nodes} when is_list(nodes) -> {:ok, nodes}
+      {:error, :enoent} -> list_nodes_port
+    end
+  end
+
+  def list_nodes_port do
     port = :erlang.open_port({:spawn, list_nodes_program}, @port_opts)
     receive_node_list(port)
   end
@@ -80,5 +87,10 @@ defmodule BTChip.HSM.Node.Manager do
   defp list_nodes_program do
     (:code.priv_dir(:btchip_hsm) ++ '/hsmlist') |> to_string
   end
+
+  defp list_nodes_file do
+    (:code.priv_dir(:btchip_hsm) ++ '/nodes.config') |> to_string
+  end
+
 
 end
