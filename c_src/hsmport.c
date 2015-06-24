@@ -35,7 +35,6 @@ int main(int argc, char **argv) {
 
 	ETERM *tuplep;
 	ETERM *fnp;
-	ETERM *args;
 	byte buf[1024];
 	const char* func_name;
 
@@ -43,25 +42,26 @@ int main(int argc, char **argv) {
 		tuplep = erl_decode(buf);
 		fnp = erl_element(1, tuplep);
 
-		func_name =  (const char*)ERL_ATOM_PTR(fnp);
-		args = erl_element(2, tuplep);
+		func_name = (const char*)ERL_ATOM_PTR(fnp);
 		if (strncmp(func_name, "derive", 6) == 0){
-			hsm_derive(dongle, args);
+			hsm_derive(dongle, tuplep);
 		} else if (strncmp(func_name, "import", 6) == 0){
-			hsm_import(dongle, args);
+			hsm_import(dongle, tuplep);
 		} else if (strncmp(func_name, "pin", 3) == 0){
-			hsm_pin(dongle, args);
+			hsm_pin(dongle, tuplep);
 		} else if (strncmp(func_name, "pubkey", 6) == 0){
-			hsm_pubkey(dongle, args);
+			hsm_pubkey(dongle, tuplep);
 	 	} else if (strncmp(func_name, "random", 6) == 0){
-			hsm_random(dongle, args);
+			hsm_random(dongle, tuplep);
 	 	} else if (strncmp(func_name, "sign", 4) == 0){
-			hsm_sign(dongle, args);
+			hsm_sign(dongle, tuplep);
 	 	} else if (strncmp(func_name, "verify", 6) == 0){
-			hsm_pubkey(dongle, args);
-	 	}	else {
-		  ERL_WRITE_ERROR("undef")
-    }
+			hsm_pubkey(dongle, tuplep);
+	 	} else if (strncmp(func_name, "close", 5) == 0){
+			break;
+	 	} else {
+			ERL_WRITE_ERROR("undef")
+		}
 		erl_free_compound(tuplep);
 		erl_free_term(fnp);
 	}
@@ -69,6 +69,15 @@ int main(int argc, char **argv) {
 	closeDongle(dongle);
 	exitDongle();
 	libusb_exit(ctx);
+
+	ETERM *atom;
+	atom = erl_mk_atom("closed");
+	byte closed_buf[erl_term_len(atom)];
+	erl_encode(atom, closed_buf);
+	write_cmd(closed_buf, erl_term_len(atom));
+	erl_free_term(atom);
+	fprintf(stderr, "CLOSED");
+
 
 	return 0;
 }

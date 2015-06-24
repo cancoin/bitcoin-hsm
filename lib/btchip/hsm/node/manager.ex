@@ -4,19 +4,27 @@ defmodule BTChip.HSM.Node.Manager do
   import BTChip.HSM, only: [process_group: 0]
 
   @port_opts [{:packet, 2}, :binary]
+  @timeout 10000
 
   defmodule State do
     defstruct [nodes: []]
   end
 
   def start_link do
-    :gen_server.start_link({:local, __MODULE__}, __MODULE__, [], [])
+    :gen_server.start_link({:local, __MODULE__}, __MODULE__, [], [{:timeout, @timeout}])
   end
 
   def init(_) do
     create_process_group
     {:ok, nodes} = start_nodes
     {:ok, %State{nodes: nodes}}
+  end
+
+  def terminate(_reason, %State{nodes: nodes}) do
+    for %{pid: node} <- nodes do
+      {:ok, :closed} = :gen_server.call(node, :close)
+    end
+    :ok
   end
 
   def create_process_group do

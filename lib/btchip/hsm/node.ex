@@ -15,10 +15,11 @@ defmodule BTChip.HSM.Node do
 
   def start_link(location) do
     name = {:local, registered_name(location)}
-    :gen_server.start_link(name, __MODULE__, [location], [])
+    :gen_server.start_link(name, __MODULE__, [location], [{:timeout, @timeout}])
   end
 
   def init([location]) do
+    Process.flag(:trap_exit, true)
     port = spawn_port(location)
     :ok = :gen_server.cast(Manager, {:register, self, location})
     {:ok, %State{location: location, port: port}}
@@ -47,6 +48,15 @@ defmodule BTChip.HSM.Node do
 
   def handle_info({port, {:data, binary}}, %State{port: port} = state) do
     handle_port(:erlang.binary_to_term(binary), state)
+  end
+
+  def terminate(_reason, %State{port: port} = state) when is_port(port) do
+    {:ok, :closed} = call_command({:close, :normal}, port)
+    # :erlang.port_close(port)
+    :ok
+  end
+  def terminate(_reason, _state) do
+    :ok
   end
 
   defp handle_port({:error, :not_found}, state) do
