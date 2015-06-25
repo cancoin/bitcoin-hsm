@@ -48,12 +48,28 @@ defmodule BtchipHsmTest do
   test "import bip32 seed" do
     for %{seed: seed} <- @vectors do
       {:ok, encoded_seed} = HSM.import_bip32_seed(seed)
-      IO.inspect encoded_seed
     end
   end
 
   test "import private key" do
     {:ok, encoded_seed} = HSM.import_private_key(@wif)
+    IO.inspect {:priv, Base.encode16(encoded_seed)}
+  end
+
+ test "get public key bip32" do
+    for %{seed: seed} <- @vectors do
+      {:ok, epk} = HSM.import_bip32_seed(seed)
+      {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
+      IO.inspect Base.encode16(pubkey) 
+    end
+  end
+
+  test "get public key base58" do
+    {:ok, epk} = HSM.import_private_key(@wif)
+    {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
+    IO.inspect Base.encode16(pubkey) 
+
+
   end
 
 end

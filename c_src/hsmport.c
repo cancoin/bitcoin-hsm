@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 	 	} else if (strncmp(func_name, "sign", 4) == 0){
 			hsm_sign(dongle, tuplep);
 	 	} else if (strncmp(func_name, "verify", 6) == 0){
-			hsm_pubkey(dongle, tuplep);
+			hsm_verify(dongle, tuplep);
 	 	} else if (strncmp(func_name, "close", 5) == 0){
 			break;
 	 	} else {
@@ -77,7 +77,6 @@ int main(int argc, char **argv) {
 	write_cmd(closed_buf, erl_term_len(atom));
 	erl_free_term(atom);
 	fprintf(stderr, "CLOSED");
-
 
 	return 0;
 }

@@ -46,7 +46,10 @@ defmodule BTChip.HSM do
 
   @spec get_public_key(epk) :: {:ok, extended_public_key} | {:error, dongle_error}
   def get_public_key(parent_key) do
-    pick_hsm |> send_command({:pubkey, parent_key})
+    case pick_hsm |> send_command({:pubkey, parent_key}) do
+      {:ok, reply} when is_list(reply) -> {:ok, Enum.into(reply, %{})}
+      error -> error
+    end
   end
 
   @spec sign_immediate(epk, binary) :: {:ok, binary} | {:error, dongle_error}
