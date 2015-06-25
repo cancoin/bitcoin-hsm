@@ -20,7 +20,12 @@ defmodule BTChip.HSM do
 
   @spec import_private_key(binary) :: {:ok, epk} | {:error, dongle_error}
   def import_private_key(seed) when is_binary(seed) do
-    pick_hsm |> send_command({:import, seed})
+    pick_hsm |> send_command({:import, :base58, seed})
+  end
+
+  @spec import_bip32_seed(binary) :: {:ok, epk} | {:error, dongle_error}
+  def import_bip32_seed(seed) when is_binary(seed) do
+    pick_hsm |> send_command({:import, :bip32seed, seed})
   end
 
   @spec derive_bip32_key_path(epk, key_path) :: {:ok, epk} | {:error, dongle_error}

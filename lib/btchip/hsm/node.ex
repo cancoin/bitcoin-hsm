@@ -25,7 +25,7 @@ defmodule BTChip.HSM.Node do
     {:ok, %State{location: location, port: port}}
   end
 
-  def handle_call({:import, _seed} = command, _from, %State{port: port} = state) do
+  def handle_call({:import, _type, _seed} = command, _from, %State{port: port} = state) do
     reply = call_command(command, port)
     {:reply, reply, state}
   end
