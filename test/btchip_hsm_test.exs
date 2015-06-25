@@ -1,9 +1,9 @@
 defmodule BtchipHsmTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
   alias BTChip.HSM
 
   @vector1 %{
-    hex: Base.decode16!("000102030405060708090A0B0C0D0E0F"),
+    seed: Base.decode16!("000102030405060708090A0B0C0D0E0F"),
     children: [
       %{path: "m", xpub: "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8"},
       %{path: "m/0p", xpub: "xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw"},
@@ -14,7 +14,7 @@ defmodule BtchipHsmTest do
   }
 
   @vector2 %{
-    hex: Base.decode16!("FFFCF9F6F3F0EDEAE7E4E1DEDBD8D5D2CFCCC9C6C3C0BDBAB7B4B1AEABA8A5A29F9C999693908D8A8784817E7B7875726F6C696663605D5A5754514E4B484542"),
+    seed: Base.decode16!("FFFCF9F6F3F0EDEAE7E4E1DEDBD8D5D2CFCCC9C6C3C0BDBAB7B4B1AEABA8A5A29F9C999693908D8A8784817E7B7875726F6C696663605D5A5754514E4B484542"),
     children: [
       %{path: "m", xpub: "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB"},
       %{path: "m/0", xpub: "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH"},
@@ -27,7 +27,9 @@ defmodule BtchipHsmTest do
 
   @vectors [@vector1, @vector2]
 
-  test "parse_bip32_path" do
+  @wif "5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF"
+
+  test "parse bip32 path" do
     assert [0, 0x80000000, 0x80000001, 0xFFFFFFFF] = HSM.parse_bip32_path("m/0/0p/1'/2147483647p")
     for %{children: children} <- @vectors do
       for %{path: path} <- children do
@@ -38,7 +40,20 @@ defmodule BtchipHsmTest do
     end
   end
 
-  test "import_private_key" do
-
+  test "random" do
+    {:ok, random} = HSM.random(8)
+    assert String.length(random) <= 8
   end
+
+  test "import bip32 seed" do
+    for %{seed: seed} <- @vectors do
+      {:ok, encoded_seed} = HSM.import_bip32_seed(seed)
+      IO.inspect encoded_seed
+    end
+  end
+
+  test "import private key" do
+    {:ok, encoded_seed} = HSM.import_private_key(@wif)
+  end
+
 end

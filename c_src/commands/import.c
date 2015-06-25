@@ -11,7 +11,7 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 	unsigned char in[260];
 	unsigned char out[260];
 	ETERM *typep;
-	ETERM *seedp;
+	ETERM *seed;
 	const char* type;
 	int seedLength;
 	int result;
@@ -20,7 +20,7 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 	int importFormat;
 
 	typep = erl_element(2, args);
-	seedp = erl_element(3, args);
+	seed = erl_element(3, args);
 
 	type = (const char*)ERL_ATOM_PTR(typep);
 
@@ -36,16 +36,14 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 		return;
 	}
 
-
-	seedLength = ERL_BIN_SIZE(seedp);
+	seedLength = ERL_BIN_SIZE(seed);
 
 	if (importFormat == FORMAT_BASE58) {
 		if ((seedLength == 0) || (seedLength > 255)) {
 			ERL_WRITE_ERROR("badarg")
 			return;
 		}
-	}
-	else {
+	} else {
 		if ((seedLength < 0) || (seedLength == 65)) {
 			ERL_WRITE_ERROR("badarg")
 			return ;
@@ -58,8 +56,8 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 	in[apduSize++] = importFormat;
 	in[apduSize++] = 0x00;
 	in[apduSize++] = 0x00;
-	memcpy(in + apduSize, (char *)ERL_BIN_PTR(seedp), ERL_BIN_SIZE(seedp));
-	apduSize += ERL_BIN_SIZE(seedp);
+	memcpy(in + apduSize, (char *)ERL_BIN_PTR(seed), ERL_BIN_SIZE(seed));
+	apduSize += ERL_BIN_SIZE(seed);
 	in[OFFSET_CDATA] = (apduSize - 5);
 	result = sendApduDongle(dongle, in, apduSize, out, sizeof(out), &sw);
 
@@ -74,8 +72,8 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 
 	ETERM *reply;
 	int reply_bytes;
-
 	ETERM *binreply;
+
 	binreply = erl_mk_binary((char*)out, sizeof(out));
 	reply = erl_format("{ok, ~w}", binreply);
 	reply_bytes = erl_term_len(reply);

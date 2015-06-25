@@ -83,7 +83,11 @@ defmodule BTChip.HSM do
     {:error, :dongle_not_found}
   end
   defp send_command(pid, command) when is_pid(pid) do
-    :gen_server.call(pid, command, @timeout)
+    case :gen_server.call(pid, command, @timeout) do
+      {:ok, reply} -> reply
+      {:ok, {:error, _reason} = error} -> error
+      error -> error
+    end
   end
 
   defp pick_hsm do
