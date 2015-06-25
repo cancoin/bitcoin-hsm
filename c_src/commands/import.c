@@ -4,10 +4,6 @@
 #define FORMAT_SEED 0x02
 
 void hsm_import(dongleHandle dongle, ETERM* args){
-	if (dongle == NULL) {
-		ERL_WRITE_ERROR("not_found");
-		return;
-	}
 	unsigned char in[260];
 	unsigned char out[260];
 	ETERM *typep;
@@ -50,6 +46,11 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 		}
 	}
 
+	if (dongle == NULL) {
+		ERL_WRITE_ERROR("not_found");
+		return;
+	}
+
 	apduSize = 0;
 	in[apduSize++] = BTCHIP_CLA;
 	in[apduSize++] = BTCHIP_INS_IMPORT_PRIVATE_KEY;
@@ -74,7 +75,7 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 	int reply_bytes;
 	ETERM *binreply;
 
-	binreply = erl_mk_binary((char*)out, sizeof(out));
+	binreply = erl_mk_binary((char*)out, result);
 	reply = erl_format("{ok, ~w}", binreply);
 	reply_bytes = erl_term_len(reply);
 	byte reply_buffer[reply_bytes];
