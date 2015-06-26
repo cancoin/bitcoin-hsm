@@ -28,48 +28,62 @@ defmodule BtchipHsmTest do
   @vectors [@vector1, @vector2]
 
   @wif "5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF"
+  @hash Base.decode16!("B7405DAEBB63964BA8EBD35933A56538FAFD131D9FDA4FC463D926F6F736CF57")
 
-  test "parse bip32 path" do
-    assert [0, 0x80000000, 0x80000001, 0xFFFFFFFF] = HSM.parse_bip32_path("m/0/0p/1'/2147483647p")
-    for %{children: children} <- @vectors do
-      for %{path: path} <- children do
-        for segment <- HSM.parse_bip32_path(path) do
-          assert is_integer(segment)
-        end
-      end
-    end
-  end
+ test "parse bip32 path" do
+   assert [0, 0x80000000, 0x80000001, 0xFFFFFFFF] = HSM.parse_bip32_path("m/0/0p/1'/2147483647p")
+   for %{children: children} <- @vectors do
+     for %{path: path} <- children do
+       for segment <- HSM.parse_bip32_path(path) do
+         assert is_integer(segment)
+       end
+     end
+   end
+ end
 
-  test "random" do
-    {:ok, random} = HSM.random(8)
-    assert String.length(random) <= 8
-  end
+ test "random" do
+   {:ok, random} = HSM.random(8)
+   assert String.length(random) <= 8
+ end
 
-  test "import bip32 seed" do
-    for %{seed: seed} <- @vectors do
-      {:ok, encoded_seed} = HSM.import_bip32_seed(seed)
-    end
-  end
+ test "import bip32 seed" do
+   for %{seed: seed} <- @vectors do
+     {:ok, epk} = HSM.import_bip32_seed(seed)
+   end
+ end
 
-  test "import private key" do
-    {:ok, encoded_seed} = HSM.import_private_key(@wif)
-    IO.inspect {:priv, Base.encode16(encoded_seed)}
-  end
+ test "import private key" do
+   {:ok, epk} = HSM.import_private_key(@wif)
+   IO.inspect {:priv, Base.encode16(epk)}
+ end
 
- test "get public key bip32" do
+test "get public key bip32" do
+   for %{seed: seed} <- @vectors do
+     {:ok, epk} = HSM.import_bip32_seed(seed)
+     {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
+   end
+ end
+
+ test "get public key base58" do
+   {:ok, epk} = HSM.import_private_key(@wif)
+   {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
+ end
+
+ test "derive" do
+   for %{seed: seed, children: children} <- @vectors do
+     {:ok, master_epk} = HSM.import_bip32_seed(seed)
+     for %{path: path} <- children do
+       IO.inspect Base.encode16(master_epk)
+       #   {:ok, epk} = HSM.derive_bip32_key_path(master_epk, path)
+     end
+   end
+ end
+
+  test "sign" do
     for %{seed: seed} <- @vectors do
       {:ok, epk} = HSM.import_bip32_seed(seed)
-      {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
-      IO.inspect Base.encode16(pubkey) 
+      {:ok, signature} = HSM.sign_immediate(epk, @hash)
     end
-  end
-
-  test "get public key base58" do
-    {:ok, epk} = HSM.import_private_key(@wif)
-    {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
-    IO.inspect Base.encode16(pubkey) 
-
-
   end
 
 end

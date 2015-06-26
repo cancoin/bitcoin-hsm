@@ -52,9 +52,9 @@ defmodule BTChip.HSM do
     end
   end
 
-  @spec sign_immediate(epk, binary) :: {:ok, binary} | {:error, dongle_error}
-  def sign_immediate(private_key, sighash) do
-    pick_hsm |> send_command({:sign, private_key, sighash})
+  @spec sign_immediate(epk, binary, :deterministic | :random) :: {:ok, binary} | {:error, dongle_error}
+  def sign_immediate(private_key, sighash, type \\ :deterministic) do
+    pick_hsm |> send_command({:sign, type, private_key, sighash})
   end
 
   @spec verify_immediate(binary, sighash, binary) :: {:ok, true | false} | {:error, dongle_error}

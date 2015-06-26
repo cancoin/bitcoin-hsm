@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
 
 	reply_bytes = erl_term_len(locations);
 	byte reply_buffer[reply_bytes];
+	erl_print_term(stderr, locations);
 	erl_encode(locations, reply_buffer);
 	write_cmd(reply_buffer, reply_bytes);
 	erl_free_compound(locations);

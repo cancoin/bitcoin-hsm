@@ -1,50 +1,44 @@
 #include "../commands.h"
 
 void hsm_sign(dongleHandle dongle, ETERM* args){
-	if (dongle == NULL) {
-		ERL_WRITE_ERROR("not_found");
-		return;
-	}
-
-	ETERM *keyp;
-	ETERM *sighashp;
-
-	keyp = erl_element(1, args);
-	sighashp = erl_element(2, args);
-
 	unsigned char in[260];
 	unsigned char out[260];
-	unsigned char encodedKey[100];
-	unsigned char hash[32];
-	unsigned char kType = 0x80;
+	ETERM *typep;
+	ETERM *encodedKey;
+	ETERM *hash;
 	int encodedKeyLength;
 	int hashLength;
+	unsigned char kType;
+	const char* type;
 	int result;
 	int sw;
 	int apduSize;
+	ETERM *reply;
+	int reply_bytes;
+	ETERM *binreply;
 
-
-	int key_len = ERL_BIN_SIZE(keyp);
-	char *key;
-	key = malloc((key_len + 1) * sizeof(char));
-	memcpy(key, (char *) ERL_BIN_PTR(keyp), key_len);
-	key[key_len + 1] = '\0';
-
-	int sighash_len = ERL_BIN_SIZE(sighashp);
-	char *sighash;
-	sighash = malloc((sighash_len + 1) * sizeof(char));
-	memcpy(sighash, (char *) ERL_BIN_PTR(sighashp), sighash_len);
-	sighash[sighash_len + 1] = '\0';
-
-	encodedKeyLength = hexToBin(key, encodedKey, sizeof(encodedKey));
-	if (encodedKeyLength < 0) {
-		ERL_WRITE_ERROR("invalid_encoded_index");
+	typep = erl_element(2, args);
+	type = (const char*)ERL_ATOM_PTR(typep);
+	if (strcasecmp(type, "random") == 0) {
+		kType = 0x00;
+	} else if (strcasecmp(type, "deterministic") == 0) {
+		kType = 0x80;
+	} else {
+		ERL_WRITE_ERROR("badarg")
 		return;
 	}
 
-	hashLength = hexToBin(sighash, hash, sizeof(hash));
+	encodedKey = erl_element(3, args);
+	encodedKeyLength = ERL_BIN_SIZE(encodedKey);
+	if (encodedKeyLength < 0) {
+		ERL_WRITE_ERROR("badarg");
+		return;
+	}
+
+	hash = erl_element(4, args);
+	hashLength = ERL_BIN_SIZE(hash);
 	if (hashLength < 0) {
-		ERL_WRITE_ERROR("invalid_hash_length");
+		ERL_WRITE_ERROR("badarg");
 		return;
 	}
 
@@ -55,33 +49,33 @@ void hsm_sign(dongleHandle dongle, ETERM* args){
 	in[apduSize++] = kType;
 	in[apduSize++] = 0x00;
 	in[apduSize++] = encodedKeyLength;
-	memcpy(in + apduSize, encodedKey, encodedKeyLength);
+	memcpy(in + apduSize, ERL_BIN_PTR(encodedKey), 71);
 	apduSize += encodedKeyLength;
 	in[apduSize++] = hashLength;
-	memcpy(in + apduSize, hash, hashLength);
+	memcpy(in + apduSize, ERL_BIN_PTR(hash), 32);
 	apduSize += hashLength;
 	in[OFFSET_CDATA] = (apduSize - 5);
+
 	result = sendApduDongle(dongle, in, apduSize, out, sizeof(out), &sw);
-	displayBinary(out, sizeof(out));
 
+	displayBinary(in, apduSize);
 	if (result < 0) {
-		ERL_WRITE_ERROR("io_error");
+		ERL_WRITE_ERROR("ioerror");
 		return;
 	}
+	displayBinary(out, result);
 	if (sw != SW_OK) {
-		ERL_WRITE_ERROR("application_error");
+		ERL_WRITE_ERROR("dongle_error");
 		return;
 	}
 
-	byte buf[1000];
-	char path[1000];
-	formatBinary(path, out, sizeof(out));
+	binreply = erl_mk_binary((char*)out, result);
+	reply = erl_format("{ok, ~w}", binreply);
+	reply_bytes = erl_term_len(reply);
+	byte reply_buffer[reply_bytes];
+	erl_encode(reply, reply_buffer);
+	write_cmd(reply_buffer, reply_bytes);
+	erl_free_compound(reply);
 
-	ETERM *resp = erl_mk_binary(path, result*2);
-	erl_encode(resp, buf);
-	write_cmd(buf, erl_term_len(resp));
-	erl_free_term(resp);
-
-	free(key);
-	free(sighash);
+	return;
 }

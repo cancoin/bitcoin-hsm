@@ -1,50 +1,29 @@
 #include "../commands.h"
 
 void hsm_derive(dongleHandle dongle, ETERM* args){
-	if (dongle == NULL) {
-		ERL_WRITE_ERROR("not_found");
-		return;
-	}
-
-	ETERM *keyp;
-	ETERM *indexp;
-
-	keyp = erl_element(1, args);
-	indexp = erl_element(2, args);
-
 	unsigned char in[260];
 	unsigned char out[260];
-	unsigned char encodedKey[100];
 	int encodedKeyLength;
 	uint32_t index;
 	int result;
 	int sw;
 	int apduSize;
+	ETERM* encodedKeyp;
+	ETERM *indexp;
+	ETERM *reply;
+	int reply_bytes;
+	ETERM *binreply;
 
-	int key_len = ERL_BIN_SIZE(keyp);
-	char *key;
-	key = malloc((key_len + 1) * sizeof(char));
-	memcpy(key, (char *) ERL_BIN_PTR(keyp), key_len);
-	key[key_len + 1] = '\0';
+	encodedKeyp = erl_element(2, args);
+	indexp = erl_element(3, args);
 
-	int derive_index_len = ERL_BIN_SIZE(indexp);
-	char *derive_index;
-	derive_index = malloc((derive_index_len + 1) * sizeof(char));
-	memcpy(derive_index, (char *) ERL_BIN_PTR(indexp), derive_index_len);
-	derive_index[derive_index_len + 1] = '\0';
-
-	encodedKeyLength = hexToBin(key, encodedKey, sizeof(encodedKey));
+	encodedKeyLength = sizeof((unsigned char *)ERL_BIN_PTR(encodedKeyp));
 	if (encodedKeyLength < 0) {
-		ERL_WRITE_ERROR("invalid_key");
+		ERL_WRITE_ERROR("badarg");
 		return;
 	}
 
-	errno = 0;
-	index = strtoll(derive_index, NULL, 16);
-	if (errno != 0) {
-		ERL_WRITE_ERROR("invalid_index");
-		return;
-	}
+	index = (uint32_t)ERL_INT_UVALUE(indexp);
 
 	apduSize = 0;
 	in[apduSize++] = BTCHIP_CLA;
@@ -53,12 +32,11 @@ void hsm_derive(dongleHandle dongle, ETERM* args){
 	in[apduSize++] = 0x00;
 	in[apduSize++] = 0x00;
 	in[apduSize++] = encodedKeyLength;
-	memcpy(in + apduSize, encodedKey, encodedKeyLength);
+	memcpy(in + apduSize, (unsigned char *)ERL_BIN_PTR(encodedKeyp), encodedKeyLength);
 	apduSize += encodedKeyLength;
 	writeUint32BE(in + apduSize, index);
 	apduSize += sizeof(index);
 	in[OFFSET_CDATA] = (apduSize - 5);
-
 	result = sendApduDongle(dongle, in, apduSize, out, sizeof(out), &sw);
 	if (result < 0) {
 		ERL_WRITE_ERROR("ioerror");
@@ -69,13 +47,13 @@ void hsm_derive(dongleHandle dongle, ETERM* args){
 		return;
 	}
 
-	byte buf[1000];
-	char path[sizeof(out)*2+1];
-	formatBinary(path, out, sizeof(out));
+	binreply = erl_mk_binary((char*)out, result);
+	reply = erl_format("{ok, ~w}", binreply);
+	reply_bytes = erl_term_len(reply);
+	byte reply_buffer[reply_bytes];
+	erl_encode(reply, reply_buffer);
+	write_cmd(reply_buffer, reply_bytes);
+	erl_free_compound(reply);
 
-	ETERM *resp = erl_mk_binary(path, result*2);
-
-	erl_encode(resp, buf);
-	write_cmd(buf, erl_term_len(resp));
-	erl_free_term(resp);
+	return;
 }

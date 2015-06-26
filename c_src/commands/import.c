@@ -22,12 +22,9 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 
 	if (strcasecmp(type, "base58") == 0) {
 		importFormat = FORMAT_BASE58;
-	}
-	else
-	if (strcasecmp(type, "bip32seed") == 0) {
+	} else if (strcasecmp(type, "bip32seed") == 0) {
 		importFormat = FORMAT_SEED;
-	}
-	else {
+	} else {
 		ERL_WRITE_ERROR("badarg")
 		return;
 	}

@@ -28,14 +28,16 @@ defmodule BTChip.HSM.Node do
   def handle_call({:import, _type, _seed} = command, _from, %State{port: port} = state) do
     {:reply, call_command(command, port), state}
   end
-  def handle_call({:derive, _parent_key, _index} = command, _from, %State{port: port} = state) do
-    {:reply, call_command(command, port), state}
+  def handle_call({:derive, parent_key, index} = command, _from, %State{port: port} = state) do
+    reply = call_command({:derive, parent_key, index}, port)
+    {:reply, reply, state}
   end
-  def handle_call({:pubkey, _parent_key} = command, _from, %State{port: port} = state) do
-    {:reply, call_command(command, port), state}
+  def handle_call({:pubkey, parent_key}, _from, %State{port: port} = state) do
+    {:reply, call_command({:pubkey, parent_key}, port), state}
   end
-  def handle_call({:sign, _private_key, _sighash} = command, _from, %State{port: port} = state) do
-    {:reply, call_command(command, port), state}
+  def handle_call({:sign, type, private_key, sighash}, _from, %State{port: port} = state)
+    when type in [:random, :deterministic] do
+    {:reply, call_command({:sign, type, private_key, sighash}, port), state}
   end
   def handle_call({:random, _count} = command, _from, %State{port: port} = state) do
     {:reply, call_command(command, port), state}
@@ -45,9 +47,9 @@ defmodule BTChip.HSM.Node do
     handle_port(:erlang.binary_to_term(binary), state)
   end
 
-  def terminate(_reason, %State{port: port} = state) when is_port(port) do
-    {:ok, :closed} = call_command({:close, :normal}, port)
-    # :erlang.port_close(port)
+  def terminate(reason, %State{port: port} = state) when is_port(port) do
+    {:ok, :closed} = call_command({:close, reason}, port)
+    :erlang.port_close(port)
     :ok
   end
   def terminate(_reason, _state) do
