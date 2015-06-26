@@ -16,22 +16,20 @@
 *   limitations under the License.
 ********************************************************************************/
 
-#ifndef __DONGLECOMM_H__
+#ifndef __DONGLECOMM_WINUSB_H__
 
-#define __DONGLECOMM_H__
+#define __DONGLECOMM_WINUSB_H__
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libusb.h>
 
-struct dongleHandleInternal;
-typedef struct dongleHandleInternal* dongleHandle;
-
-int initDongle(void);
-int exitDongle(void);
-int sendApduDongle(dongleHandle handle, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw);
-dongleHandle getFirstDongle();
-void closeDongle(dongleHandle handle);
+int initWinUSB(void);
+int exitWinUSB(void);
+int sendApduWinUSB(libusb_device_handle *handle, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw);
+libusb_device_handle* getFirstDongleWinUSB();
+void closeDongleWinUSB(libusb_device_handle *handle);
 
 #endif
 

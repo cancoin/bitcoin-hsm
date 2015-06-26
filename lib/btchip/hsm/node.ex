@@ -35,9 +35,12 @@ defmodule BTChip.HSM.Node do
   def handle_call({:pubkey, parent_key}, _from, %State{port: port} = state) do
     {:reply, call_command({:pubkey, parent_key}, port), state}
   end
-  def handle_call({:sign, type, private_key, sighash}, _from, %State{port: port} = state)
+  def handle_call({:sign, type, private_key, hash}, _from, %State{port: port} = state)
     when type in [:random, :deterministic] do
-    {:reply, call_command({:sign, type, private_key, sighash}, port), state}
+    {:reply, call_command({:sign, type, private_key, hash}, port), state}
+  end
+  def handle_call({:verify, _private_key, _hash, _signature} = command, _from, %State{port: port} = state) do
+    {:reply, call_command(command, port), state}
   end
   def handle_call({:random, _count} = command, _from, %State{port: port} = state) do
     {:reply, call_command(command, port), state}

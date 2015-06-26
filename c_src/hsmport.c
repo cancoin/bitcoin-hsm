@@ -1,31 +1,15 @@
 #include "hsmport.h"
 #include "commands.h"
+#include <libusb.h>
 
 int main(int argc, char **argv) {
 	dongleHandle dongle;
-	int option;
-	int port = NULL;
-	int bus = NULL;
-
-	while ((option = getopt(argc, argv, "p:b:")) != -1) {
-		switch (option) {
-			case 'p':
-				port = atoi(optarg);
-				break;
-			case 'b':
-				bus = atoi(optarg);
-				break;
-			default:
-				return 1;
-		}
-	}
-
 	erl_init(NULL, 0);
 
 	struct libusb_context *ctx = NULL;
 	libusb_init(&ctx);
 
-	dongle = getDongle(ctx, port, bus);
+	dongle = getFirstDongle(ctx);
 	if (dongle == NULL) {
 	ERL_WRITE_ERROR("not_found");
 		libusb_exit(ctx);

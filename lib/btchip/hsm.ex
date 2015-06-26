@@ -59,7 +59,7 @@ defmodule BTChip.HSM do
 
   @spec verify_immediate(binary, sighash, binary) :: {:ok, true | false} | {:error, dongle_error}
   def verify_immediate(public_key, sighash, signature) do
-    pick_hsm |> send_command({:verify, public_key, sighash})
+    pick_hsm |> send_command({:verify, public_key, sighash, signature})
   end
 
   @spec random(non_neg_integer) :: {:ok, binary} | {:error, dongle_error}

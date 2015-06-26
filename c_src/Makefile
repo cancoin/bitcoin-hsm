@@ -11,8 +11,9 @@ WARN ?= -Wall -Werror
 CFLAGS = $(WARN) -Os -DHAVE_LIBUSB $(DEBUG) -I$(LIBUSB) -I$(EI)/include
 LIBS = -L$(EI)/lib -L/usr/local/lib
 COMMANDS = commands/import.o commands/derive.o commands/pubkey.o commands/pin.o commands/random.o commands/sign.o commands/verify.o
-OBJS   = hexUtils.o btchipUtils.o ledgerLayer.o $(COMMANDS)
-OBJS_COMM = $(OBJS) dongleCommHid.o dongleComm.o erl_comm.o
+OBJS   = hexUtils.o btchipUtils.o $(COMMANDS)
+
+OBJS_COMM = $(OBJS) dongleCommHid.o dongleCommWinUSB.o dongleCommHidHidapi.o dongleComm.o ledgerLayer.o erl_comm.o
 
 all: hsmport hsmlist
 
@@ -23,7 +24,7 @@ commands/%.o: %.c %.h
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 hsmport: hsmport.o $(OBJS_COMM)
-	gcc hsmport.o $(LIBS) $(OBJS_COMM) -o ../priv/hsmport -l$(USB) -lerl_interface -lei -pthread
+	gcc hsmport.o $(LIBS) $(OBJS_COMM)  -o ../priv/hsmport -l$(USB) -lerl_interface -lei -pthread
 
 hsmlist: hsmlist.o $(OBJS_COMM)
 	gcc hsmlist.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmlist -l$(USB) -lerl_interface -lei -pthread
