@@ -13,7 +13,7 @@ LIBS = -L$(EI)/lib -L/usr/local/lib
 COMMANDS = commands/import.o commands/derive.o commands/pubkey.o commands/pin.o commands/random.o commands/sign.o commands/verify.o
 OBJS   = hexUtils.o btchipUtils.o $(COMMANDS)
 
-OBJS_COMM = $(OBJS) dongleCommHid.o dongleCommWinUSB.o dongleCommHidHidapi.o dongleComm.o ledgerLayer.o erl_comm.o
+OBJS_COMM = $(OBJS) dongleCommHid.o dongleComm.o ledgerLayer.o erl_comm.o
 
 all: hsmport hsmlist
 

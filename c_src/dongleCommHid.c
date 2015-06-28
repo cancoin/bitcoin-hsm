@@ -61,21 +61,21 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char ledger, const 
 		result = libusb_interrupt_transfer(handle, 0x02, paddingBuffer, blockSize, &length, TIMEOUT);
 		if (result < 0) {
 			return result;
-		}		
+		}
 		offset += blockSize;
 		remaining -= blockSize;
 	}
 	result = libusb_interrupt_transfer(handle, 0x82, buffer, MAX_BLOCK, &length, TIMEOUT);
 	if (result < 0) {
 		return result;
-	}	
+	}
 	offset = MAX_BLOCK;
-	if (!ledger) {	
-		if (buffer[0] == SW1_DATA) {		
+	if (!ledger) {
+		if (buffer[0] == SW1_DATA) {
 			int dummy;
 			length = buffer[1];
 			length += 2;
-			if (length > (MAX_BLOCK - 2)) {			
+			if (length > (MAX_BLOCK - 2)) {	
 				remaining = length - (MAX_BLOCK - 2);
 				while (remaining != 0) {
 					int blockSize;
@@ -125,30 +125,72 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char ledger, const 
 		}
 		if (sw != NULL) {
 			*sw = (out[swOffset] << 8) | out[swOffset + 1];
-		}				
+		}
 	}
 	return length;
 }
 
-libusb_device_handle* getFirstDongleHid(unsigned char *ledger) {
-	libusb_device_handle *result = libusb_open_device_with_vid_pid(NULL, BTCHIP_VID, BTCHIP_HID_PID);
-	if (result == NULL) {
-		result = libusb_open_device_with_vid_pid(NULL, BTCHIP_VID, BTCHIP_HID_PID_LEDGER);		
-		*ledger = (result != NULL);
-		if (result == NULL) {		
-			result = libusb_open_device_with_vid_pid(NULL, BTCHIP_VID, BTCHIP_HID_PID_LEDGER_PROTON);
-			*ledger = (result != NULL);
-			if (result == NULL) {
-				result = libusb_open_device_with_vid_pid(NULL, BTCHIP_VID, BTCHIP_HID_BOOTLOADER_PID);
-				if (result == NULL) {		
-					return NULL;
-				}
+libusb_device_handle* getDongleHid(unsigned char *ledger, int port, int bus) {
+	struct libusb_device **devs;
+	struct libusb_device *found = NULL;
+	struct libusb_device *dev = NULL;
+	struct libusb_device_handle *handle = NULL;
+	size_t i = 0;
+	int r;
+	int s;
+	int devices = 0;
+	int usb_port;
+	int usb_bus;
+
+	if (libusb_get_device_list(NULL, &devs) < 0)
+		return NULL;
+
+	while ((dev = devs[i++]) != NULL) {
+		struct libusb_device_descriptor desc;
+		r = libusb_get_device_descriptor(dev, &desc);
+		if (r < 0) {
+			goto out;
+		}
+
+		if (desc.idVendor == BTCHIP_VID) {
+			if(desc.idProduct == BTCHIP_HID_PID || desc.idProduct == BTCHIP_HID_BOOTLOADER_PID) {
+				*ledger = 0;
+			}
+			else
+			if (desc.idProduct == BTCHIP_HID_PID_LEDGER  || desc.idProduct == BTCHIP_HID_PID_LEDGER_PROTON) {
+				*ledger = 1;
+			}
+			else {
+				continue;
+			}
+
+			devices++;
+			usb_port = libusb_get_port_number(dev);
+			usb_bus = libusb_get_bus_number(dev);
+			if(port == usb_port && bus == usb_bus) {
+				found = dev;
+				break;
 			}
 		}
 	}
-	libusb_detach_kernel_driver(result, 0);
-	libusb_claim_interface(result, 0);
-	return result;
+
+	if (found) {
+		s = libusb_open(found, &handle);
+		if (s < 0) {
+			handle = NULL;
+			goto out;
+		}
+		if (handle) {
+			libusb_detach_kernel_driver(handle, 0);
+			libusb_claim_interface(handle, 0);
+			libusb_free_device_list(devs, 1);
+			return handle;
+		}
+	}
+
+out:
+	libusb_free_device_list(devs, 1);
+	return handle;
 }
 
 void closeDongleHid(libusb_device_handle *handle) {	

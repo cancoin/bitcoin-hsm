@@ -64,7 +64,6 @@ void hsm_verify(dongleHandle dongle, ETERM* args){
 		return;
 	}
 
-
 	reply = erl_format("{ok, true}");
 	reply_bytes = erl_term_len(reply);
 	byte reply_buffer[reply_bytes];
