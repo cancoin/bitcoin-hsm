@@ -3,11 +3,37 @@ defmodule BTChip.HSM.Node.Manager do
 
   import BTChip.HSM, only: [process_group: 0]
 
+  alias BTChip.HSM.Node
+
   @port_opts [{:packet, 2}, :binary]
   @timeout 10000
 
   defmodule State do
     defstruct [nodes: []]
+  end
+
+  def verify_pin!(pin) do
+    Enum.each list_nodes!, fn(node) ->
+      {:ok, :verified} = node
+        |> Node.registered_name
+        |> Process.whereis
+        |> :gen_server.call({:pin, pin})
+    end
+  end
+
+  defp verify_pin(pin, []) do
+    {:ok, :verified}
+  end
+  defp verify_pin(pin, [node|nodes]) do
+    reply = node
+      |> Node.registered_name
+      |> Process.whereis
+      |> :gen_server.call({:pin, pin})
+    case reply do
+      {:ok, :verified} ->
+        verify_pin(pin, nodes)
+      error -> error
+    end
   end
 
   def start_link do
@@ -27,32 +53,27 @@ defmodule BTChip.HSM.Node.Manager do
     :ok
   end
 
-  def create_process_group do
-    :pg2.create(process_group)
-  end
-
   def start_nodes do
-    {:ok, nodes} = list_nodes
-    nodes = Enum.reduce nodes, %{}, fn(location, acc) ->
-      location = Enum.into(location, %{})
-      node_pid = ensure_started(location)
-      mon_ref = Process.monitor(node_pid)
-      location = Map.merge(location, %{pid: node_pid})
-      Map.put(acc, mon_ref, location)
+    nodes = Enum.reduce list_nodes!, %{}, fn(location, acc) ->
+      {:ok, ref, location} = start_node(location)
+      Map.put(acc, ref, location)
     end
     {:ok, nodes}
   end
 
-  def list_nodes do
-    case :file.consult(list_nodes_file) do
+  def start_node(location) do
+    node_pid = ensure_started(location)
+    ref = Process.monitor(node_pid)
+    location = Map.merge(location, %{pid: node_pid})
+    {:ok, ref, location}
+  end
+
+  def list_nodes! do
+    {:ok, nodes} = case :file.consult(list_nodes_file) do
       {:ok, nodes} when is_list(nodes) -> {:ok, nodes}
       {:error, :enoent} -> list_nodes_port
     end
-  end
-
-  def list_nodes_port do
-    port = :erlang.open_port({:spawn, list_nodes_program}, @port_opts)
-    receive_node_list(port)
+    Enum.map(nodes, &Enum.into(&1, %{}))
   end
 
   def handle_cast({:register, pid, _location}, state) do
@@ -60,8 +81,12 @@ defmodule BTChip.HSM.Node.Manager do
     {:noreply, state}
   end
 
-  def handle_info({:'DOWN', mon_ref, :process, _pod, _reason}, %State{nodes: nodes} = state) do
-    {:noreply, %State{state | nodes: Map.delete(nodes, mon_ref)}}
+  def handle_info({:'DOWN', monitor_ref, :process, _pod, _reason}, %State{nodes: nodes} = state) do
+    {:noreply, %State{state | nodes: Map.delete(nodes, monitor_ref)}}
+  end
+
+  def create_process_group do
+    :pg2.create(process_group)
   end
 
   defp ensure_started(location) do
@@ -69,6 +94,11 @@ defmodule BTChip.HSM.Node.Manager do
       {:ok, pid} -> pid
       {:error, {:already_started, pid}} -> pid
     end
+  end
+
+  defp list_nodes_port do
+    port = :erlang.open_port({:spawn, list_nodes_program}, @port_opts)
+    receive_node_list(port)
   end
 
   defp receive_node_list(port) do

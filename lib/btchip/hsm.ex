@@ -1,4 +1,6 @@
 defmodule BTChip.HSM do
+  alias BTChip.HSM.Node.Manager
+
   @type epk :: binary
   @type public_index :: 0..0x7FFFFFFFFF
   @type private_index :: 0x80000000..0x100000000
@@ -65,6 +67,11 @@ defmodule BTChip.HSM do
   @spec random(non_neg_integer) :: {:ok, binary} | {:error, dongle_error}
   def random(bytes) when is_integer(bytes) do
     pick_hsm |> send_command({:random, bytes})
+  end
+
+  @spec pin(non_neg_integer) :: {:ok, :verified} | {:error, dongle_error}
+  def pin(pin) do
+    Manager.verify_pin(pin)
   end
 
   def parse_bip32_path("m"), do: []

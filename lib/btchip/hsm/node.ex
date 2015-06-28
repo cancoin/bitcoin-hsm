@@ -45,6 +45,9 @@ defmodule BTChip.HSM.Node do
   def handle_call({:random, _count} = command, _from, %State{port: port} = state) do
     {:reply, call_command(command, port), state}
   end
+  def handle_call({:pin, _pin} = command, _from, %State{port: port} = state) do
+    {:reply, call_command(command, port), state}
+  end
 
   def handle_info({port, {:data, binary}}, %State{port: port} = state) do
     handle_port(:erlang.binary_to_term(binary), state)
