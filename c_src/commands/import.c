@@ -20,9 +20,9 @@ void hsm_import(dongleHandle dongle, ETERM* args){
 
 	type = (const char*)ERL_ATOM_PTR(typep);
 
-	if (strcasecmp(type, "base58") == 0) {
+	if (strcasecmp(type, "wif") == 0) {
 		importFormat = FORMAT_BASE58;
-	} else if (strcasecmp(type, "bip32seed") == 0) {
+	} else if (strcasecmp(type, "seed") == 0) {
 		importFormat = FORMAT_SEED;
 	} else {
 		ERL_WRITE_ERROR("badarg")

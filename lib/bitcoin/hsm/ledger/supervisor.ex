@@ -1,4 +1,4 @@
-defmodule BTChip.HSM.Node.Supervisor do
+defmodule Bitcoin.HSM.Ledger.Supervisor do
   use Supervisor
 
   def start_link() do
@@ -15,7 +15,7 @@ defmodule BTChip.HSM.Node.Supervisor do
 
   def init(_opts) do
     child = [
-      worker(BTChip.HSM.Node, [], restart: :permanent)
+      worker(Bitcoin.HSM.Ledger, [], restart: :permanent)
     ]
     supervise(child, strategy: :simple_one_for_one)
   end

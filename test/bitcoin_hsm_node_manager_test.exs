@@ -1,6 +1,6 @@
-defmodule BtchipHsmManagerTest do
+defmodule BitcoinHsmManagerTest do
   use ExUnit.Case
-  alias BTChip.HSM.Node.Manager
+  alias Bitcoin.HSM.Node.Manager
 
   test "list chips" do
     assert is_list(Manager.list_nodes!)

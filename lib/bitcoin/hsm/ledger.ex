@@ -1,6 +1,6 @@
-defmodule BTChip.HSM.Node do
+defmodule Bitcoin.HSM.Ledger do
   use GenServer
-  alias BTChip.HSM.Node.Manager
+  alias Bitcoin.HSM.Ledger.Manager
 
   @timeout 10000
   @port_opts [{:packet, 2}, :binary, :exit_status]
@@ -76,7 +76,7 @@ defmodule BTChip.HSM.Node do
   end
 
   defp port_program do
-    (:code.priv_dir(:btchip_hsm) ++ '/hsmport')
+    (:code.priv_dir(:bitcoin_hsm) ++ '/hsmport')
   end
 
   defp call_command(command, port) do

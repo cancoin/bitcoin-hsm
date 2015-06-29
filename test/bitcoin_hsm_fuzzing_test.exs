@@ -1,9 +1,9 @@
 if Mix.env == :fuzz do
 
-  defmodule BtchipHsmTest do
+  defmodule BitcoinHsmTest do
     use ExUnit.Case
     use ExCheck
-    alias BTChip.HSM
+    alias Bitcoin.HSM
 
     @hmin 0x80000000
     @hmax 0x100000000

@@ -1,8 +1,8 @@
-defmodule BtchipHsm.Mixfile do
+defmodule BitcoinHSM.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :btchip_hsm,
+    [app: :bitcoin_hsm,
      version: "0.0.1",
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
@@ -16,7 +16,7 @@ defmodule BtchipHsm.Mixfile do
 
   def application do
     [applications: [:sasl, :logger],
-     mod: {BTChip.HSM.App, []}]
+     mod: {Bitcoin.HSM.App, []}]
   end
 
   defp deps(:doc) do

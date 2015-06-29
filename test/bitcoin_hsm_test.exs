@@ -1,6 +1,6 @@
-defmodule BtchipHsmTest do
+defmodule BitcoinHsmTest do
   use ExUnit.Case, async: false
-  alias BTChip.HSM
+  alias Bitcoin.HSM
 
   @vector1 %{
     seed: Base.decode16!("000102030405060708090A0B0C0D0E0F"),
@@ -48,49 +48,49 @@ defmodule BtchipHsmTest do
 
   test "import bip32 seed" do
     for %{seed: seed} <- @vectors do
-      {:ok, epk} = HSM.import_bip32_seed(seed)
+      {:ok, epk} = HSM.import_seed(seed)
     end
   end
 
   test "import private key" do
-    {:ok, epk} = HSM.import_private_key(@wif)
+    {:ok, epk} = HSM.import_wif(@wif)
     IO.inspect {:priv, Base.encode16(epk)}
   end
 
   test "get public key bip32" do
     for %{seed: seed} <- @vectors do
-      {:ok, epk} = HSM.import_bip32_seed(seed)
-      {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
+      {:ok, epk} = HSM.import_seed(seed)
+      {:ok, %{public_key: pubkey}} = HSM.public_key(epk)
     end
   end
 
   test "get public key base58" do
-    {:ok, epk} = HSM.import_private_key(@wif)
-    {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
+    {:ok, epk} = HSM.import_wif(@wif)
+    {:ok, %{public_key: pubkey}} = HSM.public_key(epk)
   end
 
   test "derive" do
     for %{seed: seed, children: children} <- @vectors do
-      {:ok, master_epk} = HSM.import_bip32_seed(seed)
+      {:ok, master_epk} = HSM.import_seed(seed)
       for %{path: path} <- children do
-        #   {:ok, epk} = HSM.derive_bip32_key_path(master_epk, path)
+        {:ok, epk} = HSM.derive(master_epk, path)
       end
     end
   end
 
   test "sign" do
     for %{seed: seed} <- @vectors do
-      {:ok, epk} = HSM.import_bip32_seed(seed)
-      {:ok, signature} = HSM.sign_immediate(epk, @hash)
+      {:ok, epk} = HSM.import_seed(seed)
+      {:ok, signature} = HSM.sign(epk, @hash)
     end
   end
 
   test "verify" do
     for %{seed: seed} <- @vectors do
-      {:ok, epk} = HSM.import_bip32_seed(seed)
-      {:ok, signature} = HSM.sign_immediate(epk, @hash)
-      {:ok, %{public_key: pubkey}} = HSM.get_public_key(epk)
-      assert {:ok, true} == HSM.verify_immediate(pubkey, @hash, signature)
+      {:ok, epk} = HSM.import_seed(seed)
+      {:ok, signature} = HSM.sign(epk, @hash)
+      {:ok, %{public_key: pubkey}} = HSM.public_key(epk)
+      assert {:ok, true} == HSM.verify(pubkey, @hash, signature)
     end
   end
 

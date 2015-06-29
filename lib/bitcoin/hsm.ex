@@ -1,5 +1,5 @@
-defmodule BTChip.HSM do
-  alias BTChip.HSM.Node.Manager
+defmodule Bitcoin.HSM do
+  alias Bitcoin.HSM.Ledger.Manager
 
   @type epk :: binary
   @type public_index :: 0..0x7FFFFFFFFF
@@ -17,50 +17,50 @@ defmodule BTChip.HSM do
   @hardened_max 0x100000000
   @hardened_regex ~r/^(?<hardened>\d*)(p|P|h|H|')$/
 
-  @process_group :btchip_hsm
+  @process_group :bitcoin_hsm
   def process_group, do: @process_group
 
-  @spec import_private_key(binary) :: {:ok, epk} | {:error, dongle_error}
-  def import_private_key(seed) when is_binary(seed) do
-    pick_hsm |> send_command({:import, :base58, seed})
+  @spec import_wif(binary) :: {:ok, epk} | {:error, dongle_error}
+  def import_wif(seed) when is_binary(seed) do
+    pick_hsm |> send_command({:import, :wif, seed})
   end
 
-  @spec import_bip32_seed(binary) :: {:ok, epk} | {:error, dongle_error}
-  def import_bip32_seed(seed) when is_binary(seed) do
-    pick_hsm |> send_command({:import, :bip32seed, seed})
+  @spec import_seed(binary) :: {:ok, epk} | {:error, dongle_error}
+  def import_seed(seed) when is_binary(seed) do
+    pick_hsm |> send_command({:import, :seed, seed})
   end
 
-  @spec derive_bip32_key_path(epk, key_path) :: {:ok, epk} | {:error, dongle_error}
-  def derive_bip32_key_path(parent_key, []), do: {:ok, parent_key}
-  def derive_bip32_key_path(parent_key, [index|rest]) when is_integer(index) do
-    case derive_bip32_key_path(parent_key, index) do
-      {:ok, key} -> derive_bip32_key_path(key, rest)
+  @spec derive(epk, key_path) :: {:ok, epk} | {:error, dongle_error}
+  def derive(parent_key, []), do: {:ok, parent_key}
+  def derive(parent_key, [index|rest]) when is_integer(index) do
+    case derive(parent_key, index) do
+      {:ok, key} -> derive(key, rest)
       {:error, reason} -> {:error, reason}
     end
   end
-  def derive_bip32_key_path(parent_key, <<"m", _ :: binary>> = path) do
+  def derive(parent_key, <<"m", _ :: binary>> = path) do
     path_segments = parse_bip32_path(path)
-    derive_bip32_key_path(parent_key, path_segments)
+    derive(parent_key, path_segments)
   end
-  def derive_bip32_key_path(parent_key, index) when is_integer(index) do
+  def derive(parent_key, index) when is_integer(index) do
     pick_hsm |> send_command({:derive, parent_key, index})
   end
 
-  @spec get_public_key(epk) :: {:ok, extended_public_key} | {:error, dongle_error}
-  def get_public_key(parent_key) do
+  @spec public_key(epk) :: {:ok, extended_public_key} | {:error, dongle_error}
+  def public_key(parent_key) do
     case pick_hsm |> send_command({:pubkey, parent_key}) do
       {:ok, reply} when is_list(reply) -> {:ok, Enum.into(reply, %{})}
       error -> error
     end
   end
 
-  @spec sign_immediate(epk, binary, :deterministic | :random) :: {:ok, binary} | {:error, dongle_error}
-  def sign_immediate(private_key, sighash, type \\ :deterministic) do
+  @spec sign(epk, binary, :deterministic | :random) :: {:ok, binary} | {:error, dongle_error}
+  def sign(private_key, sighash, type \\ :deterministic) do
     pick_hsm |> send_command({:sign, type, private_key, sighash})
   end
 
-  @spec verify_immediate(binary, sighash, binary) :: {:ok, true | false} | {:error, dongle_error}
-  def verify_immediate(public_key, sighash, signature) do
+  @spec verify(binary, sighash, binary) :: {:ok, true | false} | {:error, dongle_error}
+  def verify(public_key, sighash, signature) do
     pick_hsm |> send_command({:verify, public_key, sighash, signature})
   end
 

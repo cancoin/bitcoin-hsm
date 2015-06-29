@@ -1,4 +1,4 @@
-defmodule BTChip.HSM.Supervisor do
+defmodule Bitcoin.HSM.Supervisor do
   use Supervisor
 
   @timeout 10000
@@ -9,8 +9,8 @@ defmodule BTChip.HSM.Supervisor do
 
   def init(_opts) do
     child = [
-      supervisor(BTChip.HSM.Node.Supervisor, [], restart: :permanent, timeout: @timeout),
-      worker(BTChip.HSM.Node.Manager, [], restart: :permanent)
+      supervisor(Bitcoin.HSM.Ledger.Supervisor, [], restart: :permanent, timeout: @timeout),
+      worker(Bitcoin.HSM.Ledger.Manager, [], restart: :permanent)
     ]
     supervise(child, strategy: :one_for_one)
   end
