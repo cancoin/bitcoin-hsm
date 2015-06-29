@@ -23,14 +23,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libusb.h>
 
 struct dongleHandleInternal;
 typedef struct dongleHandleInternal* dongleHandle;
 
-int initDongle(void);
-int exitDongle(void);
+int initDongle(libusb_context *ctx);
+int exitDongle(libusb_context *ctx);
 int sendApduDongle(dongleHandle handle, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw);
-dongleHandle getDongle(int port, int bus);
+dongleHandle getDongle(libusb_context *ctx, int port, int bus);
 void closeDongle(dongleHandle handle);
 
 #endif

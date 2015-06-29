@@ -36,23 +36,21 @@ typedef struct dongleHandleInternal {
 	void* handle;
 } dongleHandleInternal;
 
-int initDongle(void) {
+int initDongle(libusb_context *ctx) {
 	int result = -1;
-	result = initHid();
+	result = initHid(ctx);
 	if (result < 0) {
 		return result;
 	}
 	return result;
 }
 
-int exitDongle(void) {
+int exitDongle(libusb_context *ctx) {
 	int result = -1;
-#ifdef HAVE_LIBUSB
-	result = exitHid();
+	result = exitHid(ctx);
 	if (result < 0) {
 		return result;
 	}
-#endif
 	return result;
 }
 
@@ -79,14 +77,14 @@ int sendApduDongle(dongleHandle handle, const unsigned char *apdu, size_t apduLe
 	return result;
 }
 
-dongleHandle getDongle(int port, int bus) {
+dongleHandle getDongle(libusb_context* ctx, int port, int bus) {
 	dongleHandle result = (dongleHandle)malloc(sizeof(dongleHandleInternal));
 	if (result == NULL) {
 		return result;
 	}
 	result->ledger = 0;
 	result->transport = TRANSPORT_HID;
-	result->handle = getDongleHid(&result->ledger, port, bus);
+	result->handle = getDongleHid(ctx, &result->ledger, port, bus);
 	if (result->handle != NULL) {
 		return result;
 	}

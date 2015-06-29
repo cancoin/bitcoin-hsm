@@ -31,11 +31,10 @@
 #define BTCHIP_HID_PID_LEDGER_PROTON 0x4b7c
 #define BTCHIP_HID_BOOTLOADER_PID 0x1807
 
-int initHid(void);
-int exitHid(void);
+int initHid(libusb_context *ctx);
+int exitHid(libusb_context *ctx);
 int sendApduHid(libusb_device_handle *handle, const unsigned char ledger, const unsigned char *apdu, size_t apduLength, unsigned char *out, size_t outLength, int *sw);
-libusb_device_handle* getFirstDongleHid(unsigned char *ledger);
-libusb_device_handle* getDongleHid(unsigned char *ledger, int port, int bus);
+libusb_device_handle* getDongleHid(libusb_context *ctx, unsigned char *ledger, int port, int bus);
 void closeDongleHid(libusb_device_handle *handle);
 
 #endif

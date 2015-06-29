@@ -25,12 +25,12 @@
 
 #ifdef HAVE_LIBUSB
 
-int initHid() {
-	return libusb_init(NULL);
+int initHid(libusb_context *ctx) {
+	return libusb_init(&ctx);
 }
 
-int exitHid() {
-	libusb_exit(NULL);
+int exitHid(libusb_context *ctx) {
+	libusb_exit(ctx);
 	return 0;
 }
 
@@ -130,7 +130,7 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char ledger, const 
 	return length;
 }
 
-libusb_device_handle* getDongleHid(unsigned char *ledger, int port, int bus) {
+libusb_device_handle* getDongleHid(libusb_context *ctx, unsigned char *ledger, int port, int bus) {
 	struct libusb_device **devs;
 	struct libusb_device *found = NULL;
 	struct libusb_device *dev = NULL;
@@ -142,7 +142,7 @@ libusb_device_handle* getDongleHid(unsigned char *ledger, int port, int bus) {
 	int usb_port;
 	int usb_bus;
 
-	if (libusb_get_device_list(NULL, &devs) < 0)
+	if (libusb_get_device_list(ctx, &devs) < 0)
 		return NULL;
 
 	while ((dev = devs[i++]) != NULL) {

@@ -3,6 +3,7 @@
 #include "hsmport.h"
 
 int main(int argc, char **argv) {
+	libusb_context *ctx = NULL;
 	dongleHandle dongle;
         int option;
         int port = NULL;
@@ -27,11 +28,11 @@ int main(int argc, char **argv) {
 
 	erl_init(NULL, 0);
 
-	initDongle();
-	dongle = getDongle(port, bus);
+	initDongle(ctx);
+	dongle = getDongle(ctx, port, bus);
 	if (dongle == NULL) {
 		ERL_WRITE_ERROR("not_found");
-		exitDongle();
+		exitDongle(ctx);
 		return 1;
 	}
 
@@ -64,7 +65,7 @@ int main(int argc, char **argv) {
 	}
 
 	closeDongle(dongle);
-	exitDongle();
+	exitDongle(ctx);
 
 	ETERM *atom;
 	atom = erl_mk_atom("closed");
