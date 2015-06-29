@@ -1,6 +1,3 @@
-# This Makefile is automatically generated with "mix cure.bootstrap"!
-# Please do not remove the following variables as they point to 
-# the necessary source-files.
 CC:=gcc
 LIBUSB = /usr/include/libusb-1.0
 USB = usb-1.0
@@ -13,7 +10,7 @@ LIBS = -L$(EI)/lib -L/usr/local/lib
 COMMANDS = commands/import.o commands/derive.o commands/pubkey.o commands/pin.o commands/random.o commands/sign.o commands/verify.o
 OBJS   = hexUtils.o btchipUtils.o $(COMMANDS)
 
-OBJS_COMM = $(OBJS) dongleCommHid.o dongleComm.o ledgerLayer.o erl_comm.o
+OBJS_COMM = $(OBJS) dongleCommHid.o dongleComm.o ledgerLayer.o erl_comm.o commands.o
 
 all: hsmport hsmlist
 
@@ -23,11 +20,14 @@ all: hsmport hsmlist
 commands/%.o: %.c %.h
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-hsmport: hsmport.o $(OBJS_COMM)
-	gcc hsmport.o $(LIBS) $(OBJS_COMM)  -o ../priv/hsmport -l$(USB) -lerl_interface -lei -pthread
+programs/%.o: %.c %.h
+	$(CC) $(CFLAGS) -o $@ -c $<
 
-hsmlist: hsmlist.o $(OBJS_COMM)
-	gcc hsmlist.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmlist -l$(USB) -lerl_interface -lei -pthread
+hsmport: programs/hsmport.o $(OBJS_COMM)
+	gcc programs/hsmport.o $(LIBS) $(OBJS_COMM)  -o ../priv/hsmport -l$(USB) -lerl_interface -lei -pthread
+
+hsmlist: programs/hsmlist.o $(OBJS_COMM)
+	gcc programs/hsmlist.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmlist -l$(USB) -lerl_interface -lei -pthread
 
 clean:
 	rm *.o ../priv/hsmport ../priv/hsmlist

@@ -53,7 +53,7 @@ void hsm_pubkey(dongleHandle dongle, ETERM* args){
 		binreply = erl_mk_binary((char*)(out + 2), out[1]);
 		reply = erl_format("{ok, [{public_key, ~w}]}", binreply);
 		reply_bytes = erl_term_len(reply);
-		byte reply_buffer[reply_bytes];
+		unsigned char reply_buffer[reply_bytes];
 		erl_encode(reply, reply_buffer);
 		write_cmd(reply_buffer, reply_bytes);
 		erl_free_compound(reply);
@@ -81,7 +81,7 @@ void hsm_pubkey(dongleHandle dongle, ETERM* args){
 			public_key, chain_code, depth, fingerprint, child_number);
 
 		reply_bytes = erl_term_len(reply);
-		byte reply_buffer[reply_bytes];
+		unsigned char reply_buffer[reply_bytes];
 		erl_encode(reply, reply_buffer);
 		write_cmd(reply_buffer, reply_bytes);
 		erl_free_compound(reply);

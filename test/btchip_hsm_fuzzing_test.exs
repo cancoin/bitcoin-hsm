@@ -1,4 +1,4 @@
-if Mix.env == :stress do
+if Mix.env == :fuzz do
 
   defmodule BtchipHsmTest do
     use ExUnit.Case

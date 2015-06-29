@@ -17,7 +17,7 @@ void hsm_derive(dongleHandle dongle, ETERM* args){
 	encodedKeyp = erl_element(2, args);
 	indexp = erl_element(3, args);
 
-	encodedKeyLength = sizeof((unsigned char *)ERL_BIN_PTR(encodedKeyp));
+	encodedKeyLength = ERL_BIN_SIZE(encodedKeyp);
 	if (encodedKeyLength < 0) {
 		ERL_WRITE_ERROR("badarg");
 		return;
@@ -32,7 +32,7 @@ void hsm_derive(dongleHandle dongle, ETERM* args){
 	in[apduSize++] = 0x00;
 	in[apduSize++] = 0x00;
 	in[apduSize++] = encodedKeyLength;
-	memcpy(in + apduSize, (unsigned char *)ERL_BIN_PTR(encodedKeyp), encodedKeyLength);
+	memcpy(in + apduSize, ERL_BIN_PTR(encodedKeyp), encodedKeyLength);
 	apduSize += encodedKeyLength;
 	writeUint32BE(in + apduSize, index);
 	apduSize += sizeof(index);
@@ -50,7 +50,7 @@ void hsm_derive(dongleHandle dongle, ETERM* args){
 	binreply = erl_mk_binary((char*)out, result);
 	reply = erl_format("{ok, ~w}", binreply);
 	reply_bytes = erl_term_len(reply);
-	byte reply_buffer[reply_bytes];
+	unsigned char reply_buffer[reply_bytes];
 	erl_encode(reply, reply_buffer);
 	write_cmd(reply_buffer, reply_bytes);
 	erl_free_compound(reply);

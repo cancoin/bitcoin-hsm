@@ -40,7 +40,7 @@ void hsm_pin(dongleHandle dongle, ETERM* args){
 
 	reply = erl_format("verified");
 	replyBytes = erl_term_len(reply);
-	byte replyBuffer[replyBytes];
+	unsigned char replyBuffer[replyBytes];
 	erl_encode(reply, replyBuffer);
 	write_cmd(replyBuffer, replyBytes);
 	erl_free_compound(reply);

@@ -1,10 +1,11 @@
 #include <getopt.h>
-#include "hexUtils.h"
-#include "dongleComm.h"
-#include "btchipApdu.h"
-#include "dongleCommHid.h"
+#include "../hexUtils.h"
+#include "../dongleComm.h"
+#include "../btchipApdu.h"
+#include "../dongleCommHid.h"
 #include "hsmport.h"
 #include "hsmlist.h"
+#include "../commands.h"
 
 typedef unsigned char byte;
 
@@ -27,7 +28,6 @@ int main(int argc, char **argv) {
 	int i;
 	uint8_t port_number;
 	uint8_t bus;
-	int reply_bytes;
 	ETERM *locations;
 	ETERM *location;
 
@@ -58,12 +58,8 @@ int main(int argc, char **argv) {
 			locations = erl_cons(location, locations);
 		}
 	}
-
-	reply_bytes = erl_term_len(locations);
-	byte reply_buffer[reply_bytes];
 	erl_print_term(stderr, locations);
-	erl_encode(locations, reply_buffer);
-	write_cmd(reply_buffer, reply_bytes);
+	port_reply(locations);
 	erl_free_compound(locations);
 	libusb_free_device_list(usb_list, 1);
 	libusb_exit(ctx);

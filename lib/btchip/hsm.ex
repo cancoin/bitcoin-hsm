@@ -69,9 +69,9 @@ defmodule BTChip.HSM do
     pick_hsm |> send_command({:random, bytes})
   end
 
-  @spec pin(non_neg_integer) :: {:ok, :verified} | {:error, dongle_error}
+  @spec pin(binary) :: {:ok, :verified} | {:error, dongle_error}
   def pin(pin) do
-    Manager.verify_pin(pin)
+    Manager.verify_pin!(pin)
   end
 
   def parse_bip32_path("m"), do: []

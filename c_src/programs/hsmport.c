@@ -1,6 +1,6 @@
-#include "hsmport.h"
-#include "commands.h"
 #include <libusb.h>
+#include "../commands.h"
+#include "hsmport.h"
 
 int main(int argc, char **argv) {
 	dongleHandle dongle;
@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
         int bus = NULL;
 	ETERM *tuplep;
 	ETERM *functionp;
-	byte buf[1024];
+	unsigned char buf[1024];
 	const char* func_name;
 
         while ((option = getopt(argc, argv, "p:b:")) != -1) {
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 	initDongle();
 	dongle = getDongle(port, bus);
 	if (dongle == NULL) {
-	ERL_WRITE_ERROR("not_found");
+		ERL_WRITE_ERROR("not_found");
 		exitDongle();
 		return 1;
 	}
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 
 	ETERM *atom;
 	atom = erl_mk_atom("closed");
-	byte closed_buf[erl_term_len(atom)];
+	unsigned char closed_buf[erl_term_len(atom)];
 	erl_encode(atom, closed_buf);
 	write_cmd(closed_buf, erl_term_len(atom));
 	erl_free_term(atom);

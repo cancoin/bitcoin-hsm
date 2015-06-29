@@ -43,7 +43,7 @@ void hsm_random(dongleHandle dongle, ETERM* args){
 	binreply = erl_mk_binary((char*)out, (int)ERL_INT_VALUE(size));
 	reply = erl_format("{ok, ~w}", binreply);
 	reply_bytes = erl_term_len(reply);
-	byte reply_buffer[reply_bytes];
+	unsigned char reply_buffer[reply_bytes];
 	erl_encode(reply, reply_buffer);
 	write_cmd(reply_buffer, reply_bytes);
 	erl_free_compound(reply);

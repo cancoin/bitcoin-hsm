@@ -21,19 +21,34 @@ defmodule BTChip.HSM.Node.Manager do
     end
   end
 
-  defp verify_pin(pin, []) do
+  def verify_pin!(pin, []) do
     {:ok, :verified}
   end
-  defp verify_pin(pin, [node|nodes]) do
+  def verify_pin!(pin, [node|nodes]) do
     reply = node
       |> Node.registered_name
       |> Process.whereis
       |> :gen_server.call({:pin, pin})
     case reply do
       {:ok, :verified} ->
-        verify_pin(pin, nodes)
+        verify_pin!(pin, nodes)
       error -> error
     end
+  end
+
+  def start_nodes do
+    nodes = Enum.reduce list_nodes!, %{}, fn(location, acc) ->
+      {:ok, ref, location} = start_node(location)
+      Map.put(acc, ref, location)
+    end
+    {:ok, nodes}
+  end
+
+  def start_node(location) do
+    node_pid = ensure_started(location)
+    ref = Process.monitor(node_pid)
+    location = Map.merge(location, %{pid: node_pid})
+    {:ok, ref, location}
   end
 
   def start_link do
@@ -51,21 +66,6 @@ defmodule BTChip.HSM.Node.Manager do
       {:ok, :closed} = :gen_server.call(node, :close)
     end
     :ok
-  end
-
-  def start_nodes do
-    nodes = Enum.reduce list_nodes!, %{}, fn(location, acc) ->
-      {:ok, ref, location} = start_node(location)
-      Map.put(acc, ref, location)
-    end
-    {:ok, nodes}
-  end
-
-  def start_node(location) do
-    node_pid = ensure_started(location)
-    ref = Process.monitor(node_pid)
-    location = Map.merge(location, %{pid: node_pid})
-    {:ok, ref, location}
   end
 
   def list_nodes! do
