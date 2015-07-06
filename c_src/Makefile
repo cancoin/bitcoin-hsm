@@ -30,5 +30,5 @@ hsmlist: programs/hsmlist.o $(OBJS_COMM)
 	gcc programs/hsmlist.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmlist -l$(USB) -lerl_interface -lei -pthread
 
 clean:
-	rm *.o ../priv/hsmport ../priv/hsmlist
+	rm -f *.o ../priv/hsmport ../priv/hsmlist
 
