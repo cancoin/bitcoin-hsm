@@ -17,19 +17,15 @@ int main(int argc, char **argv) {
 	int devices = 0;
 	int i;
 	int err;
+	int pin_size;
 	unsigned char pin[8];
-	unsigned char in[260];
-	unsigned char out[260];
-	int result;
-	int sw;
-	int apduSize;
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage : %s [hex PIN]\n", argv[0]);
 		return 0;
 	}
-	result = hexToBin(argv[1], pin, sizeof(pin));
-	if (result == 0) {
+	pin_size = hexToBin(argv[1], pin, sizeof(pin));
+	if (pin_size == 0) {
 		fprintf(stderr, "Invalid PIN\n");
 		return 0;
 	}
@@ -53,15 +49,18 @@ int main(int argc, char **argv) {
 			 desc.idProduct == BTCHIP_HID_PID_LEDGER_PROTON ||
 			 desc.idProduct == BTCHIP_HID_BOOTLOADER_PID)) {
 
+                        unsigned char in[260];
+                        unsigned char out[260];
+                        int sw;
+                        int apduSize;
+                        int result;
 			dongleHandle dongle;
 			devices++;
 
 			port = libusb_get_port_number(usb_list[i]);
 			bus = libusb_get_bus_number(usb_list[i]);
 
-			fprintf(stdout, "opening dongle at port: %i bus: %i\n", port, bus);
-
-			dongle = getDongle(port, bus);
+                        dongle = getDongle(NULL, port, bus);
 
 			if (dongle == NULL) {
 			  fprintf(stderr, "Failed to open dongle at port %i bus %i", port, bus);
@@ -73,9 +72,10 @@ int main(int argc, char **argv) {
 			in[apduSize++] = BTCHIP_INS_VERIFY_PIN;
 			in[apduSize++] = 0x00;
 			in[apduSize++] = 0x00;
-			in[apduSize++] = result;
-			memcpy(in + apduSize, pin, result);
-			apduSize += result;
+			in[apduSize++] = pin_size;
+			memcpy(in + apduSize, pin, pin_size);
+			apduSize += pin_size;
+
 			result = sendApduDongle(dongle, in, apduSize, out, sizeof(out), &sw);
 
 			dongle = NULL;
@@ -83,16 +83,16 @@ int main(int argc, char **argv) {
 			if (result < 0) {
 				fprintf(stderr, "I/O error\n");
 				closeDongle(dongle);
-				continue;
+				exit(1);
 			}
 			if (sw != SW_OK) {
 				fprintf(stderr, "Dongle application error : %.4x\n", sw);
 				closeDongle(dongle);
-				continue;
+				exit(1);
 			}
 
-			closeDongle(dongle);
-			fprintf(stdout, "PIN verified dongle %i\n", devices);
+			fprintf(stdout, "PIN verified (port %i bus %i)\n", port, bus);
+                	closeDongle(dongle);
 		}
 
 	}

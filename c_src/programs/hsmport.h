@@ -13,6 +13,7 @@
 #include "../erl_comm.h"
 #include "../btchipApdu.h"
 #include "../dongleComm.h"
+#include "../dongleCommHid.h"
 #include "../btchipUtils.h"
 #include "../hexUtils.h"
 

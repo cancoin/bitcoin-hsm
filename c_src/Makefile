@@ -12,7 +12,7 @@ OBJS   = hexUtils.o btchipUtils.o $(COMMANDS)
 
 OBJS_COMM = $(OBJS) dongleCommHid.o dongleComm.o ledgerLayer.o erl_comm.o commands.o
 
-all: hsmport hsmlist
+all: hsmport hsmlist hsmpin
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -29,6 +29,9 @@ hsmport: programs/hsmport.o $(OBJS_COMM)
 hsmlist: programs/hsmlist.o $(OBJS_COMM)
 	gcc programs/hsmlist.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmlist -l$(USB) -lerl_interface -lei -pthread
 
+hsmpin: programs/hsmpin.o $(OBJS_COMM)
+	gcc programs/hsmpin.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmpin -l$(USB) -lerl_interface -lei -pthread
+
 clean:
-	rm -f *.o ../priv/hsmport ../priv/hsmlist
+	rm -f *.o ../priv/hsmport ../priv/hsmlist ../priv/hsmpin
 
