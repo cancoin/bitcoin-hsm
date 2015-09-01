@@ -13,18 +13,15 @@ defmodule Bitcoin.HSM.Ledger.Manager do
   end
 
   def start_nodes do
-    nodes = Enum.reduce list_nodes!, %{}, fn(location, acc) ->
+    nodes = Enum.reduce list_nodes, %{}, fn(location, acc) ->
       {:ok, ref, location} = start_node(location)
       Map.put(acc, ref, location)
     end
     {:ok, nodes}
   end
 
-  def list_nodes! do
-    {:ok, nodes} = case :file.consult(list_nodes_file) do
-      {:ok, nodes} when is_list(nodes) -> {:ok, nodes}
-      {:error, :enoent} -> list_nodes_port
-    end
+  def list_nodes do
+    {:ok, nodes} = list_nodes_port
     Enum.map(nodes, &Enum.into(&1, %{}))
   end
 
@@ -36,7 +33,7 @@ defmodule Bitcoin.HSM.Ledger.Manager do
   end
 
   def verify_pin!(pin) do
-    Enum.each list_nodes!, fn(node) ->
+    Enum.each list_nodes, fn(node) ->
       {:ok, :verified} = node
         |> Ledger.registered_name
         |> Process.whereis
