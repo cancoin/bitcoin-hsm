@@ -44,17 +44,19 @@ defmodule BitcoinHSM.Mixfile do
     [
       {:earmark, "~> 0.1", only: :dev},
       {:ex_doc, "~> 0.7", only: :dev}
-    ]
+    ] ++ deps(:prod)
   end
 
   defp deps(:test) do
     [
       {:triq, git: "https://github.com/krestenkrab/triq.git"}
-    ]
+    ] ++ deps(:prod)
   end
-  
+
   defp deps(_env) do
-    []
+    [
+      {:base58check, github: "gjaldon/base58check"}
+    ]
   end
 
 end

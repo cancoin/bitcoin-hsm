@@ -9,7 +9,7 @@ defmodule BitcoinHsmTest do
       %{path: "m/0p", xpub: "xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwBZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw"},
       %{path: "m/0p/1", xpub: "xpub6ASuArnXKPbfEwhqN6e3mwBcDTgzisQN1wXN9BJcM47sSikHjJf3UFHKkNAWbWMiGj7Wf5uMash7SyYq527Hqck2AxYysAA7xmALppuCkwQ"},
       %{path: "m/0p/1/2p", xpub: "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5"},
-      %{path: "m/0p/1/2p/2/1000000000p", xpub: "xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEcYFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy"}
+      %{path: "m/0p/1/2p/2/1000000000", xpub: "xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEcYFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy"}
     ]
   }
 
@@ -20,8 +20,8 @@ defmodule BitcoinHsmTest do
       %{path: "m/0", xpub: "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXUbC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH"},
       %{path: "m/0/2147483647p", xpub: "xpub6ASAVgeehLbnwdqV6UKMHVzgqAG8Gr6riv3Fxxpj8ksbH9ebxaEyBLZ85ySDhKiLDBrQSARLq1uNRts8RuJiHjaDMBU4Zn9h8LZNnBC5y4a"},
       %{path: "m/0/2147483647p/1", xpub: "xpub6DF8uhdarytz3FWdA8TvFSvvAh8dP3283MY7p2V4SeE2wyWmG5mg5EwVvmdMVCQcoNJxGoWaU9DCWh89LojfZ537wTfunKau47EL2dhHKon"},
-      %{path: "m/0/2147483647p/1/2147483647p", xpub: "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL"},
-      %{path: "m/0/2147483647p/1/2147483647p/2", xpub: "xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt"}
+      %{path: "m/0/2147483647p/1/2147483646p", xpub: "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZRkrgZw4koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL"},
+      %{path: "m/0/2147483647p/1/2147483646p/2", xpub: "xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbdpq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt"}
     ]
   }
 
@@ -54,13 +54,14 @@ defmodule BitcoinHsmTest do
 
   test "import private key" do
     {:ok, epk} = HSM.import_wif(@wif)
-    IO.inspect {:priv, Base.encode16(epk)}
   end
 
   test "get public key bip32" do
-    for %{seed: seed} <- @vectors do
+    for %{seed: seed, children: children} <- @vectors do
       {:ok, epk} = HSM.import_seed(seed)
-      {:ok, %{public_key: pubkey}} = HSM.public_key(epk)
+      {:ok, %{public_key: pubkey} = xpub} = HSM.public_key(epk)
+      [serialized_key] = for %{path: "m", xpub: serialized_key} <- children, do: serialized_key
+      assert serialized_key == HSM.serialize_public_key(xpub)
     end
   end
 
@@ -72,8 +73,10 @@ defmodule BitcoinHsmTest do
   test "derive" do
     for %{seed: seed, children: children} <- @vectors do
       {:ok, master_epk} = HSM.import_seed(seed)
-      for %{path: path} <- children do
+      for %{path: path, xpub: xpub} <- children do
         {:ok, epk} = HSM.derive(master_epk, path)
+        {:ok, public_key} = HSM.public_key(epk)
+        assert xpub == HSM.serialize_public_key(public_key)
       end
     end
   end
@@ -93,6 +96,5 @@ defmodule BitcoinHsmTest do
       assert {:ok, true} == HSM.verify(pubkey, @hash, signature)
     end
   end
-
 
 end

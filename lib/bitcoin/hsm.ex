@@ -1,5 +1,6 @@
 defmodule Bitcoin.HSM do
   alias Bitcoin.HSM.Ledger.Manager
+  require Integer
 
   @type epk :: binary
   @type public_index :: 0..0x7FFFFFFFFF
@@ -17,7 +18,15 @@ defmodule Bitcoin.HSM do
   @hardened_max 0x100000000
   @hardened_regex ~r/^(?<hardened>\d*)(p|P|h|H|')$/
 
+  @mainnet_priv 0x0488ADE4
+  @mainnet_pub 0x0488B21E
+  @testnet_priv 0x043587CF
+  @testnet_pub 0x04358394
+  @version_pub @mainnet_pub
+  @version_priv @mainnet_priv
+
   @process_group :bitcoin_hsm
+
   def process_group, do: @process_group
 
   @spec import_wif(binary) :: {:ok, epk} | {:error, dongle_error}
@@ -46,12 +55,31 @@ defmodule Bitcoin.HSM do
     pick_hsm |> send_command({:derive, parent_key, index})
   end
 
-  @spec public_key(epk) :: {:ok, extended_public_key} | {:error, dongle_error}
+  @spec public_key(epk) :: {:ok, extended_public_key | binary} | {:error, dongle_error}
   def public_key(parent_key) do
     case pick_hsm |> send_command({:pubkey, parent_key}) do
-      {:ok, reply} when is_list(reply) -> {:ok, Enum.into(reply, %{})}
-      error -> error
+      {:ok, reply} when is_list(reply) ->
+        {:ok, Enum.into(reply, %{})}
+      error ->
+        error
     end
+  end
+
+  @spec serialize_public_key(extended_public_key) :: {:ok, binary} | {:error, atom}
+  def serialize_public_key(xpub) when is_map(xpub) do
+    public_key = case xpub[:public_key] do
+      <<0x04, x::unsigned-size(256), y::unsigned-size(256)>> ->
+       if Integer.is_odd(y) do
+         <<0x03>> <> <<x::unsigned-size(256)>>
+       else
+         <<0x02>> <> <<x::unsigned-size(256)>>
+       end
+    end
+    serialized = << @version_pub :: unsigned-size(32), xpub[:depth] :: unsigned-integer-size(8),
+       xpub[:fingerprint] :: binary-size(4), xpub[:child_number] :: binary-size(4),
+       xpub[:chain_code] :: binary-size(32), public_key :: binary-size(33)>>
+
+    Base58Check.encode58check("", serialized)
   end
 
   @spec sign(epk, binary, :deterministic | :random) :: {:ok, binary} | {:error, dongle_error}
