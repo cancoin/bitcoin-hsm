@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	libusb_device **usb_list;
 	ssize_t usb_list_size;
 	struct libusb_device_descriptor desc;
-	uint8_t port;
+	uint8_t address;
 	uint8_t bus;
 	int devices = 0;
 	int i;
@@ -57,13 +57,13 @@ int main(int argc, char **argv) {
 			dongleHandle dongle;
 			devices++;
 
-			port = libusb_get_port_number(usb_list[i]);
+			address = libusb_get_device_address(usb_list[i]);
 			bus = libusb_get_bus_number(usb_list[i]);
 
-                        dongle = getDongle(NULL, port, bus);
+                        dongle = getDongle(NULL, address, bus);
 
 			if (dongle == NULL) {
-			  fprintf(stderr, "Failed to open dongle at port %i bus %i", port, bus);
+			  fprintf(stderr, "Failed to open dongle at address %i bus %i", address, bus);
 			  continue;
 			}
 
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 				exit(1);
 			}
 
-			fprintf(stdout, "PIN verified (port %i bus %i)\n", port, bus);
+			fprintf(stdout, "PIN verified (address %i bus %i)\n", address, bus);
                 	closeDongle(dongle);
 		}
 

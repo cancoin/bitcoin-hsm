@@ -9,8 +9,8 @@ defmodule Bitcoin.HSM.Ledger do
     defstruct [port: nil, location: nil]
   end
 
-  def registered_name(%{port: port, bus: bus}) do
-    :"#{__MODULE__}.Port#{port}.Bus#{bus}"
+  def registered_name(%{address: address, bus: bus}) do
+    :"#{__MODULE__}.Port#{address}.Bus#{bus}"
   end
 
   def start_link(location) do
@@ -71,8 +71,8 @@ defmodule Bitcoin.HSM.Ledger do
     :erlang.open_port({:spawn, port_command}, @port_opts)
   end
 
-  defp port_args(%{port: port, bus: bus}) do
-    [' -p ', to_char_list(port), ' -b', to_char_list(bus)]
+  defp port_args(%{address: address, bus: bus}) do
+    [' -p ', to_char_list(address), ' -b', to_char_list(bus)]
   end
 
   defp port_program do

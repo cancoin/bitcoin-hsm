@@ -130,7 +130,7 @@ int sendApduHid(libusb_device_handle *handle, const unsigned char ledger, const 
 	return length;
 }
 
-libusb_device_handle* getDongleHid(libusb_context *ctx, unsigned char *ledger, int port, int bus) {
+libusb_device_handle* getDongleHid(libusb_context *ctx, unsigned char *ledger, int address, int bus) {
 	struct libusb_device **devs;
 	struct libusb_device *found = NULL;
 	struct libusb_device *dev = NULL;
@@ -139,7 +139,7 @@ libusb_device_handle* getDongleHid(libusb_context *ctx, unsigned char *ledger, i
 	int r;
 	int s;
 	int devices = 0;
-	int usb_port;
+	int usb_address;
 	int usb_bus;
 
 	if (libusb_get_device_list(ctx, &devs) < 0)
@@ -165,9 +165,9 @@ libusb_device_handle* getDongleHid(libusb_context *ctx, unsigned char *ledger, i
 			}
 
 			devices++;
-			usb_port = libusb_get_port_number(dev);
+			usb_address = libusb_get_device_address(dev);
 			usb_bus = libusb_get_bus_number(dev);
-			if(port == usb_port && bus == usb_bus) {
+			if(address == usb_address && bus == usb_bus) {
 				found = dev;
 				break;
 			}

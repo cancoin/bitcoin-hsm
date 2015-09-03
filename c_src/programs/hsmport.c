@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 	libusb_context *ctx = NULL;
 	dongleHandle dongle;
         int option;
-        int port = NULL;
+        int address = NULL;
         int bus = NULL;
 	ETERM *tuplep;
 	ETERM *functionp;
@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         while ((option = getopt(argc, argv, "p:b:")) != -1) {
                 switch (option) {
                         case 'p':
-                                port = atoi(optarg);
+                                address = atoi(optarg);
                                 break;
                         case 'b':
                                 bus = atoi(optarg);
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 	erl_init(NULL, 0);
 
 	initDongle(ctx);
-	dongle = getDongle(ctx, port, bus);
+	dongle = getDongle(ctx, address, bus);
 	if (dongle == NULL) {
 		ERL_WRITE_ERROR("not_found");
 		exitDongle(ctx);

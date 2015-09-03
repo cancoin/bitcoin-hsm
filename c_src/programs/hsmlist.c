@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 	ssize_t usb_list_size;
 	int devices = 0;
 	int i;
-	uint8_t port_number;
+	uint8_t device_address;
 	uint8_t bus;
 	ETERM *locations;
 	ETERM *location;
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 			libusb_exit(ctx);
 			return err;
 		};
-		port_number = libusb_get_port_number(usb_list[i]);
+		device_address = libusb_get_device_address(usb_list[i]);
 		bus = libusb_get_bus_number(usb_list[i]);
 		if (desc.idVendor == BTCHIP_VID &&
 			(desc.idProduct == BTCHIP_HID_PID_LEDGER  ||
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 			 desc.idProduct == BTCHIP_HID_BOOTLOADER_PID)) {
 
 			devices++;
-			location = erl_format("[{port, ~i}, {bus, ~i}]", port_number, bus);
+			location = erl_format("[{address, ~i}, {bus, ~i}]", device_address, bus);
 			locations = erl_cons(location, locations);
 		}
 	}
