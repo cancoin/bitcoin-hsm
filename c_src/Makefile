@@ -33,5 +33,5 @@ hsmpin: programs/hsmpin.o $(OBJS_COMM)
 	gcc programs/hsmpin.o $(LIBS) $(OBJS_COMM) -g -o ../priv/hsmpin -l$(USB) -lerl_interface -lei -pthread
 
 clean:
-	rm -f *.o ../priv/hsmport ../priv/hsmlist ../priv/hsmpin
+	rm -f *.o commands/*.o ../priv/hsmport ../priv/hsmlist ../priv/hsmpin
 
