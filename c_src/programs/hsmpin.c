@@ -78,13 +78,12 @@ int main(int argc, char **argv) {
 
 			result = sendApduDongle(dongle, in, apduSize, out, sizeof(out), &sw);
 
-			dongle = NULL;
-
 			if (result < 0) {
 				fprintf(stderr, "I/O error\n");
 				closeDongle(dongle);
 				exit(1);
 			}
+
 			if (sw != SW_OK) {
 				fprintf(stderr, "Dongle application error : %.4x\n", sw);
 				closeDongle(dongle);
@@ -92,7 +91,9 @@ int main(int argc, char **argv) {
 			}
 
 			fprintf(stdout, "PIN verified (address %i bus %i)\n", address, bus);
-                	closeDongle(dongle);
+
+			closeDongle(dongle);
+			dongle = NULL;
 		}
 
 	}
