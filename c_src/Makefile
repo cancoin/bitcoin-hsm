@@ -3,7 +3,7 @@ LIBUSB = /usr/include/libusb-1.0
 USB = usb-1.0
 EI:= $(shell erl -noshell -eval 'io:format("~s", [code:lib_dir(erl_interface)])' -s erlang halt)
 
-DEBUG = -DEXTRA_DEBUG -DDEBUG_COMM
+#DEBUG = -DEXTRA_DEBUG -DDEBUG_COMM
 WARN ?= -Wall -Werror
 CFLAGS = $(WARN) -Os -DHAVE_LIBUSB $(DEBUG) -I$(LIBUSB) -I$(EI)/include
 LIBS = -L$(EI)/lib -L/usr/local/lib
