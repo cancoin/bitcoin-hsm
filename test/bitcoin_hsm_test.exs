@@ -2,6 +2,8 @@ defmodule BitcoinHsmTest do
   use ExUnit.Case, async: false
   alias Bitcoin.HSM
 
+  @tag timeout: 60_000
+
   @vector1 %{
     seed: Base.decode16!("000102030405060708090A0B0C0D0E0F"),
     children: [
