@@ -15,7 +15,6 @@ void hsm_verify(dongleHandle dongle, ETERM* args){
 	ETERM *reply;
 	int reply_bytes;
 
-	fprintf(stderr, "here");
 	publicKey = erl_element(2, args);
 	publicKeyLength = ERL_BIN_SIZE(publicKey);
 	if (publicKeyLength < 0) {
@@ -58,7 +57,7 @@ void hsm_verify(dongleHandle dongle, ETERM* args){
 		ERL_WRITE_ERROR("ioerror");
 		return;
 	}
-	displayBinary(out, result);
+
 	if (sw != SW_OK) {
 		ERL_WRITE_ERROR("dongle_error");
 		return;

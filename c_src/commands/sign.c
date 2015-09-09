@@ -58,12 +58,11 @@ void hsm_sign(dongleHandle dongle, ETERM* args){
 
 	result = sendApduDongle(dongle, in, apduSize, out, sizeof(out), &sw);
 
-	displayBinary(in, apduSize);
 	if (result < 0) {
 		ERL_WRITE_ERROR("ioerror");
 		return;
 	}
-	displayBinary(out, result);
+
 	if (sw != SW_OK) {
 		ERL_WRITE_ERROR("dongle_error");
 		return;

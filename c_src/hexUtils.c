@@ -52,11 +52,13 @@ size_t hexToBin(const char *data, unsigned char *out, size_t outLength) {
 } 
 
 void displayBinary(unsigned char *buffer, size_t length) {
+#ifdef DEBUG_COMM
 	size_t i;
 	for (i=0; i<length; i++) {
 		fprintf(stderr, "%.2x", buffer[i]);
 	}
 	printf("\n");
+#endif
 }
 
 void formatBinary(char *converted, unsigned char *buffer, size_t length) {
