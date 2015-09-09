@@ -7,7 +7,7 @@ defmodule BitcoinHSM.Mixfile do
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     compilers: Mix.compilers ++ [:cport],
+     compilers: Mix.compilers ++ [:cport, :asn1],
      asn1_paths: ["asn1"],
      erlc_paths: ["src"],
      asn1_options: [:ber, :der],
@@ -28,12 +28,14 @@ defmodule BitcoinHSM.Mixfile do
 
   defp deps(:test) do
     [
+      {:excheck, "~> 0.2"},
       {:triq, git: "https://github.com/krestenkrab/triq.git"}
     ] ++ deps(:prod)
   end
 
   defp deps(_env) do
     [
+      {:asn1ex, github: "cancoin/asn1ex"},
       {:base58check, github: "gjaldon/base58check"}
     ]
   end
