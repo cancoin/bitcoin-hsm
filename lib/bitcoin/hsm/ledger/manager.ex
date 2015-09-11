@@ -116,9 +116,5 @@ defmodule Bitcoin.HSM.Ledger.Manager do
     (:code.priv_dir(:bitcoin_hsm) ++ '/hsmlist') |> to_string
   end
 
-  defp list_nodes_file do
-    (:code.priv_dir(:bitcoin_hsm) ++ '/nodes.config') |> to_string
-  end
-
 
 end
