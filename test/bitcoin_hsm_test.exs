@@ -51,11 +51,13 @@ defmodule BitcoinHsmTest do
   test "import bip32 seed" do
     for %{seed: seed} <- @vectors do
       {:ok, epk} = HSM.import_seed(seed)
+      assert <<1, 2, 0, _ :: binary>> = epk
     end
   end
 
   test "import private key" do
     {:ok, epk} = HSM.import_wif(@wif)
+    assert <<1, 1, 0, _ :: binary>> = epk
   end
 
   test "get public key bip32" do
@@ -70,6 +72,7 @@ defmodule BitcoinHsmTest do
   test "get public key base58" do
     {:ok, epk} = HSM.import_wif(@wif)
     {:ok, %{public_key: pubkey}} = HSM.public_key(epk)
+    assert String.length(pubkey) == 64
   end
 
   test "derive" do
@@ -87,6 +90,7 @@ defmodule BitcoinHsmTest do
     for %{seed: seed} <- @vectors do
       {:ok, epk} = HSM.import_seed(seed)
       {:ok, signature} = HSM.sign(epk, @hash)
+      assert <<48, _ :: binary>> = signature
     end
   end
 

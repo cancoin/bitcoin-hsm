@@ -57,8 +57,8 @@ defmodule BitcoinHsmFuzzingTest do
 
   property :sign_immediate do
     for_all {seed, sighash} in {binary(32), binary(32)} do
-      {:ok, seed} = HSM.import_seed(seed)
-      {:ok, signature} = HSM.sign(seed, sighash)
+      {:ok, epk} = HSM.import_seed(seed)
+      {:ok,  <<48, _ :: binary>> = signature} = HSM.sign(epk, sighash)
       IO.inspect {:epk, Base.encode16 signature}
       true
     end
@@ -66,8 +66,9 @@ defmodule BitcoinHsmFuzzingTest do
 
   property :verify_immediate do
     for_all {seed, sighash} in {binary(32), binary(32)} do
-      {:ok, <<16, _ :: binary>> = signature} = HSM.sign(seed, sighash)
-      {:ok, %{public_key: public_key}} = HSM.get_public_key(seed)
+     {:ok, epk} = HSM.import_seed(seed)
+      {:ok, <<48, _ :: binary>> = signature} = HSM.sign(epk, sighash)
+      {:ok, %{public_key: public_key}} = HSM.public_key(epk)
       {:ok, true} = HSM.verify(public_key, sighash, signature)
       true
     end

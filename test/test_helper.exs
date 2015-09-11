@@ -1,2 +1,2 @@
 Application.start(:bitcoin_hsm)
-ExUnit.start()
+ExUnit.start(timeout: :infinity)

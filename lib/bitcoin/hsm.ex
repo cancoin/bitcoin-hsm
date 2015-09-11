@@ -27,6 +27,13 @@ defmodule Bitcoin.HSM do
 
   @process_group :bitcoin_hsm
 
+  @asn1_mod :'BTChip-HSM-ECDSA'
+  @asn1_seq :'ECDSA-Sig-Value-Seq'
+  @asn1_seq_prefix 48
+  @asn1_set :'ECDSA-Sig-Value-Set'
+  @asn1_set_prefix 49
+
+
   def process_group, do: @process_group
 
   @spec import_wif(binary) :: {:ok, epk} | {:error, dongle_error}
@@ -84,7 +91,12 @@ defmodule Bitcoin.HSM do
 
   @spec sign(epk, binary, :deterministic | :random) :: {:ok, binary} | {:error, dongle_error}
   def sign(private_key, sighash, type \\ :deterministic) do
-    pick_hsm |> send_command({:sign, type, private_key, sighash})
+    case pick_hsm |> send_command({:sign, type, private_key, sighash}) do
+      {:ok, signature} ->
+        transcode_signature(signature)
+      error ->
+        error
+    end
   end
 
   @spec verify(binary, sighash, binary) :: {:ok, true | false} | {:error, dongle_error}
@@ -115,6 +127,23 @@ defmodule Bitcoin.HSM do
         end
       end)
       |> Enum.reverse
+  end
+
+  def transcode_signature(<<@asn1_set_prefix, _ :: binary>> = signature) do
+    case @asn1_mod.decode(@asn1_set, signature) do
+      {:ok, [_r, _v] = decoded_signature} ->
+        @asn1_mod.encode(@asn1_seq, decoded_signature)
+      error ->
+        error
+    end
+  end
+  def transcode_signature(<<@asn1_seq_prefix, _ :: binary>> = signature) do
+    case @asn1_mod.decode(@asn1_seq, signature) do
+      {:ok, [_r, _v] = decoded_signature} ->
+        @asn1_mod.encode(@asn1_seq, decoded_signature)
+      error ->
+        error
+    end
   end
 
   defp send_command({:no_process, @process_group} = error, _command) do
