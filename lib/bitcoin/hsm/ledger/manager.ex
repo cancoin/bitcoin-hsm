@@ -41,7 +41,7 @@ defmodule Bitcoin.HSM.Ledger.Manager do
     end
   end
 
-  def verify_pin!(pin, []) do
+  def verify_pin!(_pin, []) do
     {:ok, :verified}
   end
   def verify_pin!(pin, [node|nodes]) do

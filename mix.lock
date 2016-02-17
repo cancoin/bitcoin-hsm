@@ -1,4 +1,4 @@
-%{"asn1ex": {:git, "https://github.com/cancoin/asn1ex.git", "11151b7901ccae68ff941d056d5d717f6949a6ba", []},
+%{"asn1ex": {:git, "https://github.com/cancoin/asn1ex.git", "b20d23dbbf38c2fa763dc84ae6ea9f3ec10fa4f4", []},
   "base58check": {:git, "https://github.com/gjaldon/base58check.git", "1006aa4b2acf51ddd99f71997ba6baf44fcdb7c3", []},
   "erlsha2": {:git, "https://github.com/vinoski/erlsha2.git", "e3434b33cfeea02609bbf877954d856d895b9e1d", []},
   "excheck": {:hex, :excheck, "0.2.3"},

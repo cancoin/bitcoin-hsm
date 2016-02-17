@@ -14,9 +14,7 @@ int main(int argc, char **argv) {
 	struct libusb_context *ctx = NULL;
 
 	erl_init(NULL, 0);
-	fprintf(stderr, "initusb");
 	err = libusb_init(&ctx);
-	fprintf(stderr, "initedusb");
 	if (err < 0) {
 		ERL_WRITE_ERROR(libusb_error_name(err));
 		return err;

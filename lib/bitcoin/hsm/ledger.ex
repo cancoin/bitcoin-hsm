@@ -28,7 +28,7 @@ defmodule Bitcoin.HSM.Ledger do
   def handle_call({:import, _type, _seed} = command, _from, %State{port: port} = state) do
     {:reply, call_command(command, port), state}
   end
-  def handle_call({:derive, parent_key, index} = command, _from, %State{port: port} = state) do
+  def handle_call({:derive, parent_key, index}, _from, %State{port: port} = state) do
     reply = call_command({:derive, parent_key, index}, port)
     {:reply, reply, state}
   end
@@ -53,7 +53,7 @@ defmodule Bitcoin.HSM.Ledger do
     handle_port(:erlang.binary_to_term(binary), state)
   end
 
-  def terminate(reason, %State{port: port} = state) when is_port(port) do
+  def terminate(reason, %State{port: port}) when is_port(port) do
     {:ok, :closed} = call_command({:close, reason}, port)
     :erlang.port_close(port)
     :ok

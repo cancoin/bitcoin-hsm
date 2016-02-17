@@ -5,7 +5,7 @@ defmodule Bitcoin.HSM.Ledger.Supervisor do
     :supervisor.start_link({:local, __MODULE__}, __MODULE__, [])
   end
 
-  def start_child(%{address: address, bus: bus} = location) do
+  def start_child(%{address: _address, bus: _bus} = location) do
     :supervisor.start_child(__MODULE__, [location])
   end
 

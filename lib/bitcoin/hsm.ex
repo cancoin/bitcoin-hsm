@@ -116,7 +116,7 @@ defmodule Bitcoin.HSM do
 
   def parse_bip32_path("m"), do: []
   def parse_bip32_path(<<"m/", path :: binary>>) do
-    segments = path
+    path
       |> String.split("/")
       |> Enum.reduce([], fn(segment, acc) ->
         case Regex.named_captures(@hardened_regex, segment) do
@@ -146,13 +146,13 @@ defmodule Bitcoin.HSM do
     end
   end
 
-  defp send_command({:no_process, @process_group} = error, _command) do
+  defp send_command({:no_process, @process_group}, _command) do
     {:error, :dongle_not_found}
   end
   defp send_command(pid, command) when is_pid(pid) do
     case :gen_server.call(pid, command, @timeout) do
-      {:ok, reply} -> reply
       {:ok, {:error, _reason} = error} -> error
+      {:ok, reply} -> reply
       error -> error
     end
   end
