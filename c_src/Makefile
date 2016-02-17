@@ -1,12 +1,13 @@
 CC:=gcc
-LIBUSB = /usr/include/libusb-1.0
+LIBUSB_CFLAGS = $(shell pkg-config --cflags libusb-1.0)
+LIBUSB_LIBS = $(shell pkg-config --libs libusb-1.0)
 USB = usb-1.0
 EI:= $(shell erl -noshell -eval 'io:format("~s", [code:lib_dir(erl_interface)])' -s erlang halt)
 
 #DEBUG = -DEXTRA_DEBUG -DDEBUG_COMM
 WARN ?= -Wall -Werror
-CFLAGS = $(WARN) -Os -DHAVE_LIBUSB $(DEBUG) -I$(LIBUSB) -I$(EI)/include
-LIBS = -L$(EI)/lib -L/usr/local/lib
+CFLAGS = $(WARN) -Os -DHAVE_LIBUSB $(DEBUG) $(LIBUSB_CFLAGS) -I$(EI)/include
+LIBS = -L$(EI)/lib $(LIBUSB_LIBS)
 COMMANDS = commands/import.o commands/derive.o commands/pubkey.o commands/pin.o commands/random.o commands/sign.o commands/verify.o
 OBJS   = hexUtils.o btchipUtils.o $(COMMANDS)
 
